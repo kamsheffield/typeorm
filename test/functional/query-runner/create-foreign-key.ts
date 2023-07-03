@@ -24,6 +24,8 @@ describe("query runner > create foreign key", () => {
     it("should correctly create foreign key and revert creation", () =>
         Promise.all(
             connections.map(async (connection) => {
+                if (connection.options.disableForeignKeyConstraints) return
+
                 let numericType = "int"
                 if (DriverUtils.isSQLiteFamily(connection.driver)) {
                     numericType = "integer"

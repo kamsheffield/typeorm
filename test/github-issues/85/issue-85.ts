@@ -41,7 +41,12 @@ describe("github issues > #85 - Column option insert: false, update: false", () 
         Promise.all(
             connections.map(async (connection) => {
                 // Skip because test relies on DEFAULT values and Spanner does not support it
-                if (connection.driver.options.type === "spanner") return
+                if (
+                    connection.driver.options.type === "spanner" ||
+                    // This test is causing PlanetScale to timeout on the next test ran.
+                    connection.driver.options.type === "planetscale-serverless"
+                )
+                    return
 
                 // We delete the non-inserted column entirely, so that any use of it will throw an error.
                 let queryRunner = connection.createQueryRunner()

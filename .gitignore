@@ -1,6 +1,7 @@
 .nyc_output/
 .DS_Store
-.vscode/
+.vscode/**/*
+!.vscode/launch.json
 .idea/
 build/
 coverage/

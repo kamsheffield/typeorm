@@ -143,6 +143,11 @@ export interface BaseDataSourceOptions {
     readonly relationLoadStrategy?: "join" | "query"
 
     /**
+     * Tells TypeORM to skip all foreign key operations or operations that require foreign keys.
+     */
+    readonly disableForeignKeyConstraints?: boolean
+
+    /**
      * Optionally applied "typename" to the model.
      * If set, then each hydrated model will have this property with the target model / entity name inside.
      *

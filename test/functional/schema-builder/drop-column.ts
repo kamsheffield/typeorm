@@ -72,7 +72,11 @@ describe("schema builder > drop column", () => {
                 } else {
                     studentTable!.indices.length.should.be.equal(0)
                 }
-                studentTable!.foreignKeys.length.should.be.equal(1)
+                if (!connection.options.disableForeignKeyConstraints) {
+                    studentTable!.foreignKeys.length.should.be.equal(1)
+                } else {
+                    studentTable!.foreignKeys.length.should.be.equal(0)
+                }
             }),
         ))
 })

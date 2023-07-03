@@ -28,11 +28,11 @@ export class DateUtils {
     static mixedDateToDateString(value: string | Date): string {
         if (value instanceof Date) {
             return (
-                this.formatZerolessValue(value.getFullYear(), 4) +
+                this.formatZerolessValue(value.getUTCFullYear(), 4) +
                 "-" +
-                this.formatZerolessValue(value.getMonth() + 1) +
+                this.formatZerolessValue(value.getUTCMonth() + 1) +
                 "-" +
-                this.formatZerolessValue(value.getDate())
+                this.formatZerolessValue(value.getUTCDate())
             )
         }
 

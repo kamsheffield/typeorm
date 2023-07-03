@@ -380,13 +380,15 @@ describe("query runner > create table", () => {
                     questionTable!.checks.length.should.be.equal(1)
                 }
 
-                questionTable!.foreignKeys.length.should.be.equal(1)
-                questionTable!.foreignKeys[0].columnNames.length.should.be.equal(
-                    2,
-                )
-                questionTable!.foreignKeys[0].referencedColumnNames.length.should.be.equal(
-                    2,
-                )
+                if (!connection.options.disableForeignKeyConstraints) {
+                    questionTable!.foreignKeys.length.should.be.equal(1)
+                    questionTable!.foreignKeys[0].columnNames.length.should.be.equal(
+                        2,
+                    )
+                    questionTable!.foreignKeys[0].referencedColumnNames.length.should.be.equal(
+                        2,
+                    )
+                }
 
                 let categoryTable = await queryRunner.getTable("category")
                 const categoryTableIdColumn =
@@ -399,7 +401,9 @@ describe("query runner > create table", () => {
                     )
                 }
                 categoryTable!.should.exist
-                categoryTable!.foreignKeys.length.should.be.equal(1)
+                if (!connection.options.disableForeignKeyConstraints) {
+                    categoryTable!.foreignKeys.length.should.be.equal(1)
+                }
 
                 if (
                     DriverUtils.isMySQLFamily(connection.driver) ||

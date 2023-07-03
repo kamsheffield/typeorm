@@ -326,6 +326,8 @@ describe("query builder > relational query builder > set operation > one-to-one 
     it("should raise error when setting entity relation of a multiple entities", () =>
         Promise.all(
             connections.map(async (connection) => {
+                if (connection.options.disableForeignKeyConstraints) return
+
                 const image1 = new Image()
                 image1.url = "image #1"
                 await connection.manager.save(image1)

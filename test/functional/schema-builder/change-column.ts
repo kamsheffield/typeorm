@@ -115,7 +115,11 @@ describe("schema builder > change column", () => {
                 )
                 await queryRunner.release()
 
-                postVersionTable!.foreignKeys.length.should.be.equal(1)
+                if (!connection.options.disableForeignKeyConstraints) {
+                    postVersionTable!.foreignKeys.length.should.be.equal(1)
+                } else {
+                    postVersionTable!.foreignKeys.length.should.be.equal(0)
+                }
 
                 // revert changes
                 if (connection.driver.options.type === "spanner") {
@@ -467,7 +471,11 @@ describe("schema builder > change column", () => {
                 )
                 await queryRunner.release()
 
-                postVersionTable!.foreignKeys.length.should.be.equal(1)
+                if (!connection.driver.options.disableForeignKeyConstraints) {
+                    postVersionTable!.foreignKeys.length.should.be.equal(1)
+                } else {
+                    postVersionTable!.foreignKeys.length.should.be.equal(0)
+                }
 
                 // revert changes
                 nameColumn.length = "255"

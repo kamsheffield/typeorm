@@ -1,18 +1,18 @@
+import { expect } from "chai"
+import { afterEach } from "mocha"
 import "reflect-metadata"
+import { BaseEntity } from "../../../src"
+import { DataSource } from "../../../src/data-source/DataSource"
 import {
-    createTestingConnections,
     closeTestingConnections,
+    createTestingConnections,
     reloadTestingDatabases,
 } from "../../utils/test-utils"
-import { DataSource } from "../../../src/data-source/DataSource"
-import { expect } from "chai"
-import { InternalUser } from "./entity/InternalUser"
-import { InternalRole } from "./entity/InternalRole"
-import { User } from "./entity/User"
-import { Role } from "./entity/Role"
-import { BaseEntity } from "../../../src"
 import { ClientRole } from "./entity/ClientRole"
-import { afterEach } from "mocha"
+import { InternalRole } from "./entity/InternalRole"
+import { InternalUser } from "./entity/InternalUser"
+import { Role } from "./entity/Role"
+import { User } from "./entity/User"
 
 describe("github issues > #8522 Single table inheritance returns the same discriminator value error for unrelated tables where their parents extend from the same entity", () => {
     let connections: DataSource[]
@@ -23,17 +23,17 @@ describe("github issues > #8522 Single table inheritance returns the same discri
     describe("Unrelated tables", () => {
         before(
             async () =>
-                (connections = await createTestingConnections({
-                    entities: [
-                        BaseEntity,
-                        InternalUser,
-                        InternalRole,
-                        Role,
-                        User,
-                    ],
-                    schemaCreate: true,
-                    dropSchema: true,
-                })),
+            (connections = await createTestingConnections({
+                entities: [
+                    BaseEntity,
+                    InternalUser,
+                    InternalRole,
+                    Role,
+                    User,
+                ],
+                schemaCreate: true,
+                dropSchema: true,
+            })),
         )
         beforeEach(() => reloadTestingDatabases(connections))
 

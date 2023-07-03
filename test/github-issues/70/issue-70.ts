@@ -23,6 +23,8 @@ describe("github issues > #70 cascade deleting works incorrect", () => {
     it("should persist successfully and return persisted entity", () =>
         Promise.all(
             connections.map(async (connection) => {
+                if (connection.options.disableForeignKeyConstraints) return
+
                 // Spanner support only NO ACTION clause
                 if (connection.driver.options.type === "spanner") return
 

@@ -48,6 +48,7 @@ describe("persistence > cascades > example 2", () => {
                     .createQueryBuilder(Question, "question")
                     .leftJoinAndSelect("question.answers", "answer")
                     .leftJoinAndSelect("answer.photo", "answerPhoto")
+                    .orderBy("answer.id")
                     .leftJoinAndSelect("answer.user", "answerUser")
                     .leftJoinAndSelect("answerUser.question", "userQuestion")
                     .getOne()

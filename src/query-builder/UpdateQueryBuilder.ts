@@ -18,6 +18,7 @@ import { TypeORMError } from "../error"
 import { EntityPropertyNotFoundError } from "../error/EntityPropertyNotFoundError"
 import { SqlServerDriver } from "../driver/sqlserver/SqlServerDriver"
 import { DriverUtils } from "../driver/DriverUtils"
+import { PlanetScaleDriver } from "../driver/planetscale/PlanetScaleDriver"
 
 /**
  * Allows to build complex sql queries in a fashion way and execute those queries.
@@ -575,6 +576,7 @@ export class UpdateQueryBuilder<Entity extends ObjectLiteral>
                                     this.connection.driver as
                                         | MysqlDriver
                                         | AuroraMysqlDriver
+                                        | PlanetScaleDriver
                                 ).options.legacySpatialSupport
                                 const geomFromText = useLegacy
                                     ? "GeomFromText"

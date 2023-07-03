@@ -28,6 +28,8 @@ describe("github issues > #3847 FEATURE REQUEST - Naming strategy foreign key ov
     it("NamingStrategyUnderTest#", () =>
         Promise.all(
             connections.map(async (connection) => {
+                if (connection.options.disableForeignKeyConstraints) return
+
                 await connection.getRepository(Animal).find()
 
                 let metadata = connection.getMetadata(Animal)

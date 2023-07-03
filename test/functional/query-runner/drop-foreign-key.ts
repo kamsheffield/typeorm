@@ -21,6 +21,8 @@ describe("query runner > drop foreign key", () => {
     it("should correctly drop foreign key and revert drop", () =>
         Promise.all(
             connections.map(async (connection) => {
+                if (connection.options.disableForeignKeyConstraints) return
+
                 const queryRunner = connection.createQueryRunner()
 
                 let table = await queryRunner.getTable("student")

@@ -26,6 +26,8 @@ describe("github issues > #2464 - ManyToMany onDelete option not working", () =>
     it("should not delete when onDelete is 'NO ACTION'", () =>
         Promise.all(
             connections.map(async (connection) => {
+                if (connection.options.disableForeignKeyConstraints) return
+
                 const repo = connection.getRepository(Foo)
 
                 await repo.save({ id: 1, bars: [{ description: "test1" }] })
@@ -42,6 +44,7 @@ describe("github issues > #2464 - ManyToMany onDelete option not working", () =>
     it("should delete when onDelete is not set", () =>
         Promise.all(
             connections.map(async (connection) => {
+                if (connection.options.disableForeignKeyConstraints) return
                 // Spanner support only NO ACTION clause
                 if (connection.driver.options.type === "spanner") return
 

@@ -58,6 +58,8 @@ describe("persistence > one-to-one", function () {
         it("should reject the saving attempt", () =>
             Promise.all(
                 connections.map(async (connection) => {
+                    if (connection.options.disableForeignKeyConstraints) return
+
                     const userRepository = connection.getRepository(User)
                     const accessTokenRepository =
                         connection.getRepository(AccessToken)

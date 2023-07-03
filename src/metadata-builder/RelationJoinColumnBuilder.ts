@@ -68,7 +68,11 @@ export class RelationJoinColumnBuilder {
             relation,
             referencedColumns,
         )
-        if (!referencedColumns.length || !relation.createForeignKeyConstraints)
+        if (
+            !referencedColumns.length ||
+            this.connection.options.disableForeignKeyConstraints ||
+            !relation.createForeignKeyConstraints
+        )
             return {
                 foreignKey: undefined,
                 columns,

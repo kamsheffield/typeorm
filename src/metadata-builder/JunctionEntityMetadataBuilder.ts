@@ -221,46 +221,52 @@ export class JunctionEntityMetadataBuilder {
         // create junction table foreign keys
         // Note: UPDATE CASCADE clause is not supported in Oracle.
         // Note: UPDATE/DELETE CASCADE clauses are not supported in Spanner.
-        entityMetadata.foreignKeys = relation.createForeignKeyConstraints
-            ? [
-                  new ForeignKeyMetadata({
-                      entityMetadata: entityMetadata,
-                      referencedEntityMetadata: relation.entityMetadata,
-                      columns: junctionColumns,
-                      referencedColumns: referencedColumns,
-                      name: junctionColumns[0]?.foreignKeyConstraintName,
-                      onDelete:
-                          this.connection.driver.options.type === "spanner"
-                              ? "NO ACTION"
-                              : relation.onDelete || "CASCADE",
-                      onUpdate:
-                          this.connection.driver.options.type === "oracle" ||
-                          this.connection.driver.options.type === "spanner"
-                              ? "NO ACTION"
-                              : relation.onUpdate || "CASCADE",
-                  }),
-                  new ForeignKeyMetadata({
-                      entityMetadata: entityMetadata,
-                      referencedEntityMetadata: relation.inverseEntityMetadata,
-                      columns: inverseJunctionColumns,
-                      referencedColumns: inverseReferencedColumns,
-                      name: inverseJunctionColumns[0]?.foreignKeyConstraintName,
-                      onDelete:
-                          this.connection.driver.options.type === "spanner"
-                              ? "NO ACTION"
-                              : relation.inverseRelation
-                              ? relation.inverseRelation.onDelete
-                              : "CASCADE",
-                      onUpdate:
-                          this.connection.driver.options.type === "oracle" ||
-                          this.connection.driver.options.type === "spanner"
-                              ? "NO ACTION"
-                              : relation.inverseRelation
-                              ? relation.inverseRelation.onUpdate
-                              : "CASCADE",
-                  }),
-              ]
-            : []
+        entityMetadata.foreignKeys =
+            !this.connection.options.disableForeignKeyConstraints &&
+            relation.createForeignKeyConstraints
+                ? [
+                      new ForeignKeyMetadata({
+                          entityMetadata: entityMetadata,
+                          referencedEntityMetadata: relation.entityMetadata,
+                          columns: junctionColumns,
+                          referencedColumns: referencedColumns,
+                          name: junctionColumns[0]?.foreignKeyConstraintName,
+                          onDelete:
+                              this.connection.driver.options.type === "spanner"
+                                  ? "NO ACTION"
+                                  : relation.onDelete || "CASCADE",
+                          onUpdate:
+                              this.connection.driver.options.type ===
+                                  "oracle" ||
+                              this.connection.driver.options.type === "spanner"
+                                  ? "NO ACTION"
+                                  : relation.onUpdate || "CASCADE",
+                      }),
+                      new ForeignKeyMetadata({
+                          entityMetadata: entityMetadata,
+                          referencedEntityMetadata:
+                              relation.inverseEntityMetadata,
+                          columns: inverseJunctionColumns,
+                          referencedColumns: inverseReferencedColumns,
+                          name: inverseJunctionColumns[0]
+                              ?.foreignKeyConstraintName,
+                          onDelete:
+                              this.connection.driver.options.type === "spanner"
+                                  ? "NO ACTION"
+                                  : relation.inverseRelation
+                                  ? relation.inverseRelation.onDelete
+                                  : "CASCADE",
+                          onUpdate:
+                              this.connection.driver.options.type ===
+                                  "oracle" ||
+                              this.connection.driver.options.type === "spanner"
+                                  ? "NO ACTION"
+                                  : relation.inverseRelation
+                                  ? relation.inverseRelation.onUpdate
+                                  : "CASCADE",
+                      }),
+                  ]
+                : []
 
         // create junction table indices
         entityMetadata.ownIndices = [

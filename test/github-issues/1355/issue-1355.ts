@@ -25,6 +25,8 @@ describe("github issues > #1355 Allow explicitly named primary keys, foreign key
     it("should set foreign keys their names to given names", () =>
         Promise.all(
             connections.map(async (connection) => {
+                if (connection.options.disableForeignKeyConstraints) return
+
                 await connection.getRepository(Animal).find()
 
                 let metadata = connection.getMetadata(Animal)

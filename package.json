@@ -56,6 +56,13 @@
     "./browser/driver/sap/SapDriver.js": "./browser/platform/BrowserDisabledDriversDummy.js",
     "./browser/driver/sqlite/SqliteDriver.js": "./browser/platform/BrowserDisabledDriversDummy.js",
     "./browser/driver/sqlserver/SqlServerDriver.js": "./browser/platform/BrowserDisabledDriversDummy.js",
+    "./browser/driver/spanner/SpannerDriver.js": "./browser/platform/BrowserDisabledDriversDummy.js",
+    "./browser/driver/capacitor/CapacitorDriver.js": "./browser/platform/BrowserDisabledDriversDummy.js",
+    "./browser/driver/cordova/CordovaDriver.js": "./browser/platform/BrowserDisabledDriversDummy.js",
+    "./browser/driver/expo/ExpoDriver.js": "./browser/platform/BrowserDisabledDriversDummy.js",
+    "./browser/driver/nativescript/NativescriptDriver.js": "./browser/platform/BrowserDisabledDriversDummy.js",
+    "./browser/driver/react-native/ReactNativeDriver.js": "./browser/platform/BrowserDisabledDriversDummy.js",
+    "./browser/driver/sqljs/SqljsDriver.js": "./browser/platform/BrowserDisabledDriversDummy.js",
     "./browser/entity-manager/MongoEntityManager.js": "./browser/platform/BrowserDisabledDriversDummy.js",
     "./browser/logger/FileLogger.js": "./browser/platform/BrowserFileLoggerDummy.js",
     "./browser/platform/PlatformTools.js": "./browser/platform/BrowserPlatformTools.js",
@@ -93,6 +100,7 @@
     "cloud-spanner-orm"
   ],
   "devDependencies": {
+    "@planetscale/database": "file:../planetscale-database-js",
     "@types/app-root-path": "^1.2.4",
     "@types/chai": "^4.3.4",
     "@types/chai-as-promised": "^7.1.5",
