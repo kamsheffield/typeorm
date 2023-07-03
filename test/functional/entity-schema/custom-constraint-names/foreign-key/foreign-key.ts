@@ -23,6 +23,8 @@ describe("entity schema > custom constraint names > foreign key", () => {
     it("should set custom constraint names", () =>
         Promise.all(
             dataSources.map(async (dataSource) => {
+                if (dataSource.options.disableForeignKeyConstraints) return
+
                 let metadata = dataSource.getMetadata(AnimalSchema)
 
                 // check ManyToMany constraints
@@ -54,6 +56,8 @@ describe("entity schema > custom constraint names > foreign key", () => {
     it("should load constraints with custom names", () =>
         Promise.all(
             dataSources.map(async (dataSource) => {
+                if (dataSource.options.disableForeignKeyConstraints) return
+
                 const queryRunner = dataSource.createQueryRunner()
                 const table = await queryRunner.getTable("animal")
                 const joinTable = await queryRunner.getTable("animal_category")
@@ -87,6 +91,8 @@ describe("entity schema > custom constraint names > foreign key", () => {
     it("should not change constraint names when table renamed", () =>
         Promise.all(
             dataSources.map(async (dataSource) => {
+                if (dataSource.options.disableForeignKeyConstraints) return
+
                 const queryRunner = dataSource.createQueryRunner()
                 await queryRunner.renameTable("animal", "animal_renamed")
                 await queryRunner.renameTable(
@@ -129,6 +135,8 @@ describe("entity schema > custom constraint names > foreign key", () => {
     it("should not change constraint names when column renamed", () =>
         Promise.all(
             dataSources.map(async (dataSource) => {
+                if (dataSource.options.disableForeignKeyConstraints) return
+
                 // in SqlServer we can't change column that is used in FK.
                 if (dataSource.driver.options.type === "mssql") return
 

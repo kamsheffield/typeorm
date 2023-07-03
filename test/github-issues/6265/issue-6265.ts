@@ -42,6 +42,7 @@ describe("github issues > #6265 `fix: resolve issue with find with relations ret
                 const roleWithAllUser = await connection.manager
                     .createQueryBuilder(Role, "role")
                     .leftJoinAndSelect("role.users", "users")
+                    .orderBy("users.id")
                     .getMany()
                 expect(roleWithAllUser[0].users.length).eq(2)
                 expect(
@@ -87,6 +88,7 @@ describe("github issues > #6265 `fix: resolve issue with find with relations ret
                     .createQueryBuilder(Role, "role")
                     .withDeleted()
                     .leftJoinAndSelect("role.users", "users")
+                    .orderBy("users.id")
                     .getMany()
 
                 expect(roleWithUserSoftDelete[0].users.length).eq(2)

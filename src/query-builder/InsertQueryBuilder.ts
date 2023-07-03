@@ -4,6 +4,7 @@ import { ObjectLiteral } from "../common/ObjectLiteral"
 import { AuroraMysqlDriver } from "../driver/aurora-mysql/AuroraMysqlDriver"
 import { DriverUtils } from "../driver/DriverUtils"
 import { MysqlDriver } from "../driver/mysql/MysqlDriver"
+import { PlanetScaleDriver } from "../driver/planetscale/PlanetScaleDriver"
 import { SqlServerDriver } from "../driver/sqlserver/SqlServerDriver"
 import { TypeORMError } from "../error"
 import { InsertValuesMissingError } from "../error/InsertValuesMissingError"
@@ -875,6 +876,7 @@ export class InsertQueryBuilder<
                                 this.connection.driver as
                                     | MysqlDriver
                                     | AuroraMysqlDriver
+                                    | PlanetScaleDriver
                             ).options.legacySpatialSupport
                             const geomFromText = useLegacy
                                 ? "GeomFromText"

@@ -16,6 +16,7 @@ import { OrmUtils } from "../util/OrmUtils"
 import { UpdateResult } from "../query-builder/result/UpdateResult"
 import { ObjectUtils } from "../util/ObjectUtils"
 import { InstanceChecker } from "../util/InstanceChecker"
+import { PlanetScaleQueryRunner } from "../driver/planetscale/PlanetScaleQueryRunner"
 
 /**
  * Executes all database operations (inserts, updated, deletes) that must be executed
@@ -664,11 +665,19 @@ export class SubjectExecutor {
             ok()
         })
 
-        // Run all remaining subjects in parallel
-        await Promise.all([
-            ...remainingSubjects.map(updateSubject),
-            nestedSetPromise,
-        ])
+        // Planetscale doesn't support parallel updates.
+        // Run updates on all other query runner types in parallel
+        if (this.queryRunner instanceof PlanetScaleQueryRunner) {
+            for (const subject of remainingSubjects) {
+                await updateSubject(subject)
+            }
+            await nestedSetPromise
+        } else {
+            await Promise.all([
+                ...remainingSubjects.map(updateSubject),
+                nestedSetPromise,
+            ])
+        }
     }
 
     /**

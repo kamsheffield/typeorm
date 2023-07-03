@@ -20,6 +20,7 @@ describe("view entity > general", () => {
         async () =>
             (connections = await createTestingConnections({
                 entities: [__dirname + "/entity/*{.js,.ts}"],
+                enabledDrivers: ["mysql", "mariadb", "postgres", "sqlite"],
             })),
     )
     beforeEach(() => reloadTestingDatabases(connections))

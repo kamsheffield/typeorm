@@ -60,7 +60,11 @@ describe("schema builder > create table", () => {
 
                 studentTable = await queryRunner.getTable("student")
                 studentTable!.should.exist
-                studentTable!.foreignKeys.length.should.be.equal(2)
+                if (!connection.options.disableForeignKeyConstraints) {
+                    studentTable!.foreignKeys.length.should.be.equal(2)
+                } else {
+                    studentTable!.foreignKeys.length.should.be.equal(0)
+                }
                 // CockroachDB also stores indices for relation columns
                 if (connection.driver.options.type === "cockroachdb") {
                     studentTable!.indices.length.should.be.equal(3)

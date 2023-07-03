@@ -18,6 +18,9 @@ export class PlatformTools {
     static getGlobalVariable(): any {
         if (typeof window !== "undefined") {
             return window
+        } else if (typeof globalThis !== "undefined") {
+            // Cloudflare Workers uses globalThis
+            return globalThis
         } else {
             // NativeScript uses global, not window
             return global
@@ -166,6 +169,10 @@ interface Window {
 declare var window: Window;
 if (typeof window !== "undefined" && typeof require !== "undefined") {
     window.Buffer = require("buffer/").Buffer;
+}
+// Cloudflare Workers uses globalThis
+if (typeof globalThis !== "undefined" && typeof require !== "undefined") {
+    globalThis.Buffer = require("buffer/").Buffer;
 }
 // NativeScript uses global, not window
 if (typeof global !== "undefined" && typeof require !== "undefined") {

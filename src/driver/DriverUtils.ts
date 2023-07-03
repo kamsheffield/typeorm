@@ -30,7 +30,9 @@ export class DriverUtils {
      * Returns true if given driver is MySQL-based driver.
      */
     static isMySQLFamily(driver: Driver): boolean {
-        return ["mysql", "mariadb"].includes(driver.options.type)
+        return ["mysql", "mariadb", "planetscale-serverless"].includes(
+            driver.options.type,
+        )
     }
 
     static isReleaseVersionOrGreater(driver: Driver, version: string): boolean {

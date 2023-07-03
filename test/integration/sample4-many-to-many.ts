@@ -16,8 +16,12 @@ describe("many-to-many", function () {
 
     // connect to db
     let dataSource: DataSource
-    before(async function () {
-        const options = setupSingleTestingConnection("mysql", {
+
+    before(() => setupDataSource())
+    after(() => dataSource.destroy())
+
+    async function setupDataSource() {
+        const options = setupSingleTestingConnection("planetscale-serverless", {
             entities: [
                 __dirname + "/../../sample/sample4-many-to-many/entity/*",
             ],
@@ -26,9 +30,7 @@ describe("many-to-many", function () {
         if (!options) return
         dataSource = new DataSource(options)
         await dataSource.initialize()
-    })
-
-    after(() => dataSource.destroy())
+    }
 
     // clean up database before each test
     function reloadDatabase() {
@@ -54,8 +56,10 @@ describe("many-to-many", function () {
     // Specifications
     // -------------------------------------------------------------------------
 
-    describe("insert post and details (has inverse relation + full cascade options)", function () {
+    describe("insert post and details (has inverse relation + full cascade options)", async function () {
+        await setupDataSource()
         if (!dataSource) return
+
         let newPost: Post, details: PostDetails, savedPost: Post
 
         before(reloadDatabase)

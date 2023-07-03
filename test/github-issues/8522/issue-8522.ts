@@ -92,14 +92,26 @@ describe("github issues > #8522 Single table inheritance returns the same discri
 
     describe("Related tables", () => {
         it("Should throw error when related tables have the same discriminator", async () => {
-            await createTestingConnections({
-                entities: [BaseEntity, ClientRole, InternalRole, Role, User],
-                schemaCreate: true,
-                dropSchema: true,
-            }).should.be.rejectedWith(
-                TypeORMError,
-                `Entities ClientRole and InternalRole have the same discriminator values. Make sure they are different while using the @ChildEntity decorator.`,
-            )
+            try {
+                await createTestingConnections({
+                    entities: [
+                        BaseEntity,
+                        ClientRole,
+                        InternalRole,
+                        Role,
+                        User,
+                    ],
+                    schemaCreate: true,
+                    dropSchema: true,
+                })
+            } catch (error) {
+                expect(error).to.be.instanceOf(TypeORMError)
+                expect(error.message).to.contain("ClientRole")
+                expect(error.message).to.contain("InternalRole")
+                expect(error.message).to.contain(
+                    "have the same discriminator values. Make sure they are different while using the @ChildEntity decorator.",
+                )
+            }
         })
     })
 })

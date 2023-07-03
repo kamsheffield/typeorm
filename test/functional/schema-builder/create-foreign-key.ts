@@ -23,6 +23,8 @@ describe("schema builder > create foreign key", () => {
     it("should correctly create foreign key", () =>
         Promise.all(
             connections.map(async (connection) => {
+                if (connection.options.disableForeignKeyConstraints) return
+
                 const categoryMetadata = connection.getMetadata("category")
                 const postMetadata = connection.getMetadata("post")
                 const columns = categoryMetadata.columns.filter(

@@ -153,9 +153,11 @@ describe("query runner > rename table", () => {
                 // CockroachDB and Spanner does not support renaming constraints and removing PK.
                 if (
                     connection.driver.options.type === "cockroachdb" ||
-                    connection.driver.options.type === "spanner"
-                )
+                    connection.driver.options.type === "spanner" ||
+                    connection.driver.options.type === "planetscale-serverless"
+                ) {
                     return
+                }
 
                 const queryRunner = connection.createQueryRunner()
                 let table: Table | undefined

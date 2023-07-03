@@ -16,6 +16,7 @@ import { QueryBuilder } from "./QueryBuilder"
 import { ReadStream } from "../platform/PlatformTools"
 import { LockNotSupportedOnGivenDriverError } from "../error/LockNotSupportedOnGivenDriverError"
 import { MysqlDriver } from "../driver/mysql/MysqlDriver"
+import { PlanetScaleDriver } from "../driver/planetscale/PlanetScaleDriver"
 import { SelectQuery } from "./SelectQuery"
 import { EntityMetadata } from "../metadata/EntityMetadata"
 import { ColumnMetadata } from "../metadata/ColumnMetadata"
@@ -2690,7 +2691,8 @@ export class SelectQueryBuilder<Entity extends ObjectLiteral>
                 }
             case "pessimistic_write":
                 if (
-                    DriverUtils.isMySQLFamily(driver) ||
+                    (DriverUtils.isMySQLFamily(driver) &&
+                        driver.options.type !== "planetscale-serverless") ||
                     driver.options.type === "aurora-mysql" ||
                     driver.options.type === "oracle"
                 ) {
@@ -2708,7 +2710,10 @@ export class SelectQueryBuilder<Entity extends ObjectLiteral>
             case "pessimistic_partial_write":
                 if (DriverUtils.isPostgresFamily(driver)) {
                     return " FOR UPDATE" + lockTablesClause + " SKIP LOCKED"
-                } else if (DriverUtils.isMySQLFamily(driver)) {
+                } else if (
+                    DriverUtils.isMySQLFamily(driver) &&
+                    driver.options.type !== "planetscale-serverless"
+                ) {
                     return " FOR UPDATE SKIP LOCKED"
                 } else {
                     throw new LockNotSupportedOnGivenDriverError()
@@ -2719,7 +2724,10 @@ export class SelectQueryBuilder<Entity extends ObjectLiteral>
                     driver.options.type === "cockroachdb"
                 ) {
                     return " FOR UPDATE" + lockTablesClause + " NOWAIT"
-                } else if (DriverUtils.isMySQLFamily(driver)) {
+                } else if (
+                    DriverUtils.isMySQLFamily(driver) &&
+                    driver.options.type !== "planetscale-serverless"
+                ) {
                     return " FOR UPDATE NOWAIT"
                 } else {
                     throw new LockNotSupportedOnGivenDriverError()
@@ -2840,6 +2848,7 @@ export class SelectQueryBuilder<Entity extends ObjectLiteral>
                         this.connection.driver as
                             | MysqlDriver
                             | AuroraMysqlDriver
+                            | PlanetScaleDriver
                     ).options.legacySpatialSupport
                     const asText = useLegacy ? "AsText" : "ST_AsText"
                     selectionPath = `${asText}(${selectionPath})`

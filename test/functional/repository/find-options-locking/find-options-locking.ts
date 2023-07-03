@@ -85,7 +85,8 @@ describe("repository > find options > locking", () => {
                 if (
                     DriverUtils.isSQLiteFamily(connection.driver) ||
                     connection.driver.options.type === "sap" ||
-                    connection.driver.options.type === "spanner"
+                    connection.driver.options.type === "spanner" ||
+                    connection.driver.options.type === "planetscale-serverless"
                 )
                     return
 
@@ -125,7 +126,8 @@ describe("repository > find options > locking", () => {
                     DriverUtils.isSQLiteFamily(connection.driver) ||
                     connection.driver.options.type === "cockroachdb" ||
                     connection.driver.options.type === "sap" ||
-                    connection.driver.options.type === "spanner"
+                    connection.driver.options.type === "spanner" ||
+                    connection.driver.options.type === "planetscale-serverless"
                 )
                     return
 
@@ -312,7 +314,8 @@ describe("repository > find options > locking", () => {
                 if (
                     DriverUtils.isSQLiteFamily(connection.driver) ||
                     connection.driver.options.type === "sap" ||
-                    connection.driver.options.type === "spanner"
+                    connection.driver.options.type === "spanner" ||
+                    connection.driver.options.type === "planetscale-serverless"
                 )
                     return
 

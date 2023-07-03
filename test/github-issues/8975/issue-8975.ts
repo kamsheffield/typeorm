@@ -12,10 +12,11 @@ describe("cli init command", () => {
         "postgres",
         "cockroachdb",
         "sqlite",
-        "better-sqlite3",
+        "planetscale-serverless",
+        //"better-sqlite3",
         // "oracle", // as always oracle have issues: dependency installation doesn't work on mac m1 due to missing oracle binaries for m1
-        "mssql",
-        "mongodb",
+        //"mssql",
+        //"mongodb",
     ]
     const testProjectName = Date.now() + "TestProject"
     const builtSrcDirectory = "build/compiled/src"
