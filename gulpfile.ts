@@ -231,6 +231,16 @@ export class Gulpfile {
     }
 
     /**
+     * Copies CHANGES.md into the package.
+     */
+    @Task()
+    packageCopyChangesReadme() {
+        return gulp.src("./CHANGES.md")
+            .pipe(replace(/```typescript([\s\S]*?)```/g, "```javascript$1```"))
+            .pipe(gulp.dest("./build/package"));
+    }
+
+    /**
      * Copies shims to use typeorm in different environment and conditions file into package.
      */
     @Task()
@@ -256,6 +266,7 @@ export class Gulpfile {
                 "packageReplaceReferences",
                 "packagePreparePackageFile",
                 "packageCopyReadme",
+                "packageCopyChangesReadme",
                 "packageCopyShims"
             ],
         ];
