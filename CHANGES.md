@@ -62,3 +62,10 @@ Enable the driver you want to test in the `ormconfig.json` and then run one of t
 * Run the build.
 * Run the tests on the following three configurations: planetscale-serverless, mariadb, mariadb-nofk.
 * Merge the changes into `planetscale-cloudflare`.
+
+### Distribution
+
+* Create release tag and push to github
+* `npm run package`
+* `npm run pack`
+* Upload output zip to github
