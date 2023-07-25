@@ -5,6 +5,7 @@ import { TypeORMError } from "../error"
 import { DataSource } from "../data-source"
 import { InstanceChecker } from "../util/InstanceChecker"
 import { importOrRequireFile } from "../util/ImportUtils"
+import { CommandDataSource } from "./CommandDataSource"
 
 /**
  * Command line utils functions.
@@ -13,6 +14,12 @@ export class CommandUtils {
     static async loadDataSource(
         dataSourceFilePath: string,
     ): Promise<DataSource> {
+        // check if we have an instance of DataSource already loaded
+        // if not proceed with the normal flow.
+        if (CommandDataSource.instance) {
+            return CommandDataSource.instance
+        }
+
         let dataSourceFileExports
         try {
             ;[dataSourceFileExports] = await importOrRequireFile(
