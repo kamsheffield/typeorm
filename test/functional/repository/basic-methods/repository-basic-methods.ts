@@ -746,8 +746,11 @@ describe("repository > basic methods", () => {
         it("should upsert on one-to-one relation", () =>
             Promise.all(
                 connections.map(async (connection) => {
-                    if (!connection.driver.supportedUpsertTypes.length 
-                        || connection.options.disableForeignKeyConstraints) return
+                    if (
+                        !connection.driver.supportedUpsertTypes.length ||
+                        connection.options.disableForeignKeyConstraints
+                    )
+                        return
 
                     const oneToOneRepository = connection.getRepository(
                         OneToOneRelationEntity,
