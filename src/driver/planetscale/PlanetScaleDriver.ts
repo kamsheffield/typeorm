@@ -7,7 +7,7 @@ import { ColumnMetadata } from "../../metadata/ColumnMetadata"
 import { DateUtils } from "../../util/DateUtils"
 import { DataSource } from "../../data-source/DataSource"
 import { RdbmsSchemaBuilder } from "../../schema-builder/RdbmsSchemaBuilder"
-import { PlanetScaleConnectionOptions } from "./PlanetScaleConnectionOptions"
+import { PlanetScaleDataSourceOptions } from "./PlanetScaleDataSourceOptions"
 import { MappedColumnTypes } from "../types/MappedColumnTypes"
 import { ColumnType } from "../types/ColumnTypes"
 import { DataTypeDefaults } from "../types/DataTypeDefaults"
@@ -49,7 +49,7 @@ export class PlanetScaleDriver implements Driver {
     /**
      * Connection options.
      */
-    options: PlanetScaleConnectionOptions
+    options: PlanetScaleDataSourceOptions
 
     /**
      * Version of the database PlanetScale returns, likely a version of MySQL.
@@ -314,7 +314,7 @@ export class PlanetScaleDriver implements Driver {
     constructor(dataSource: DataSource) {
         this.dataSource = dataSource
         this.options =
-            dataSource.options as unknown as PlanetScaleConnectionOptions
+            dataSource.options as unknown as PlanetScaleDataSourceOptions
         this.connectionPool = []
         this.database = DriverUtils.buildDriverOptions(this.options).database
     }

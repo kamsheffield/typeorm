@@ -1,14 +1,14 @@
 import { BaseDataSourceOptions } from "../../data-source/BaseDataSourceOptions"
-import { PlanetScaleConnectionCredentialsOptions } from "./PlanetScaleConnectionCredentialsOptions"
+import { PlanetScaleDataSourceCredentialsOptions } from "./PlanetScaleDataSourceCredentialsOptions"
 
 /**
  * PlanetScale serverless specific connection options.
  *
  * @see https://github.com/planetscale/database-js
  */
-export interface PlanetScaleConnectionOptions
+export interface PlanetScaleDataSourceOptions
     extends BaseDataSourceOptions,
-        PlanetScaleConnectionCredentialsOptions {
+        PlanetScaleDataSourceCredentialsOptions {
     /**
      * Database type.
      */

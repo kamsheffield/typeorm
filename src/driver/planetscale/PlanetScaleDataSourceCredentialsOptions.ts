@@ -3,7 +3,7 @@
  *
  * @see https://github.com/planetscale/database-js
  */
-export interface PlanetScaleConnectionCredentialsOptions {
+export interface PlanetScaleDataSourceCredentialsOptions {
     /**
      * The url is an optional parameter that should contain
      * host, username, password and the database name.
