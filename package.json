@@ -100,7 +100,6 @@
     "cloud-spanner-orm"
   ],
   "devDependencies": {
-    "@planetscale/database": "file:../planetscale-database-js",
     "@types/app-root-path": "^1.2.4",
     "@types/chai": "^4.3.4",
     "@types/chai-as-promised": "^7.1.5",
@@ -225,6 +224,7 @@
     }
   },
   "dependencies": {
+    "@planetscale/database": "https://github.com/kamsheffield/planetscale-database-js/releases/download/v1.8.0-typeorm-cloudflare/planetscale-database-1.8.0.tgz",
     "@sqltools/formatter": "^1.2.5",
     "app-root-path": "^3.1.0",
     "buffer": "^6.0.3",
