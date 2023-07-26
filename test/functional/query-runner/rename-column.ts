@@ -118,8 +118,7 @@ describe("query runner > rename column", () => {
     it("should correctly rename column with all constraints in custom table schema and database and revert rename", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (connection.driver.options.type === "planetscale-serverless")
-                    return
+                if (connection.driver.options.type === "planetscale") return
 
                 const queryRunner = connection.createQueryRunner()
                 let table: Table | undefined

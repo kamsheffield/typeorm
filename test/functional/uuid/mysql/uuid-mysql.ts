@@ -14,7 +14,7 @@ describe("uuid-mysql", () => {
     before(async () => {
         connections = await createTestingConnections({
             entities: [__dirname + "/entity/*{.js,.ts}"],
-            enabledDrivers: ["mysql", "planetscale-serverless"],
+            enabledDrivers: ["mysql", "planetscale"],
         })
     })
     beforeEach(() => reloadTestingDatabases(connections))

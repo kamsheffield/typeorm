@@ -35,8 +35,7 @@ describe("github issues > #1780 Support for insertion ignore on duplicate error"
     it("should save one row without duplicate error in MySQL/MariaDB", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (connection.driver.options.type === "planetscale-serverless")
-                    return
+                if (connection.driver.options.type === "planetscale") return
                 try {
                     if (DriverUtils.isMySQLFamily(connection.driver)) {
                         const UserRepository =

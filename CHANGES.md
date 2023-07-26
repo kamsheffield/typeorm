@@ -14,13 +14,18 @@ This was implemented at the `DataSourceOptions` level rather than the driver lev
 
 ### PlanetScale Driver and QueryRunner
 
-The `PlanetScaleDriver` and `PlanetScaleQueryRunner` are both based on their MySql counterparts. They have been modified and in many cases simplified to work with PlanetScale.
+The driver comes in two flavors (known as connector types). The `PlanetScaleDriver` uses the `mysql` package and the `PlanetScaleServerlessDriver` uses the PlanetScale serverless driver.
 
-The `PlanetScaleDriver` uses a [customized version](https://github.com/kamsheffield/planetscale-database-js/blob/typeorm-cloudflare/CHANGES.md) of the PlanetScale Serverless driver for Javascript that is compatible with TypeORM.
+Both drivers and the `PlanetScaleQueryRunner` are based on their MySql counterparts. They have been modified and in many cases simplified to work with PlanetScale.
+
+The `PlanetScaleServerlessDriver` uses a [customized version](https://github.com/kamsheffield/planetscale-database-js/blob/typeorm-cloudflare/CHANGES.md) of the PlanetScale Serverless driver for Javascript with changes that make it compatible with TypeORM.
 
 ### Browser Build
 
 Cloudflare Workers do not support Nodejs and instead run on a customized V8 runtime. The TypeORM browser build had many additional drivers that aren't needed. In order to trim down the build size, all drivers are stubbed except for the `PlanetScaleDriver`. See the `package.json` file for more information.
+
+### CLI Enhancements
+Added ability to specify an already constructed `DataSource` to the TypeORM CLI via the `CommandDataSource` singleton. This is useful when you are calling the TypeORM CLI programmatically and you don't want to have to rely on hardcoded instances of `DataSource`.
 
 ### Tests
 
@@ -42,6 +47,8 @@ Enable the driver you want to test in the `ormconfig.json` and then run one of t
 
 * All tests: `npm test`
 * grep: `npm test -- --grep="many-to-one"`
+
+Don't forget to build first for the options below:
 * Folder: `./node_modules/mocha/bin/_mocha --file ./build/compiled/test/utils/test-setup.js --bail --recursive --timeout 90000 ./build/compiled/test/github-issues/`
 * File: `./node_modules/mocha/bin/_mocha --file ./build/compiled/test/utils/test-setup.js --bail --recursive --timeout 90000 ./build/compiled/test/integration/sample1-simple-entity.js`
 
@@ -60,7 +67,7 @@ Enable the driver you want to test in the `ormconfig.json` and then run one of t
 * Create a new `integration` branch off of `planetscale-cloudflare` and merge the changes from `master`. 
 * Fix any conflicts as needed.
 * Run the build.
-* Run the tests on the following three configurations: planetscale-serverless, mariadb, mariadb-nofk.
+* Run the tests on the following four configurations: `planetscale-serverless` `planetscale-mysql`, `mariadb`, `mariadb-nofk`.
 * Merge the changes into `planetscale-cloudflare`.
 
 ### Distribution

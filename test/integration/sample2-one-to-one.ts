@@ -23,7 +23,7 @@ describe("one-to-one", function () {
     after(() => dataSource.destroy())
 
     async function setupDataSource() {
-        const options = setupSingleTestingConnection("planetscale-serverless", {
+        const options = setupSingleTestingConnection("planetscale", {
             entities: [
                 Post,
                 PostDetails,

@@ -21,8 +21,7 @@ describe("github issues > #3379 Migration will keep create and drop indexes if i
     it("should not recreate indices", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (connection.driver.options.type === "planetscale-serverless")
-                    return
+                if (connection.driver.options.type === "planetscale") return
 
                 const queryRunner = connection.createQueryRunner()
 

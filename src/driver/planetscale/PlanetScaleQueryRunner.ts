@@ -9,7 +9,6 @@ import { TableIndex } from "../../schema-builder/table/TableIndex"
 import { QueryRunnerAlreadyReleasedError } from "../../error/QueryRunnerAlreadyReleasedError"
 import { View } from "../../schema-builder/view/View"
 import { Query } from "../Query"
-import { PlanetScaleDriver } from "./PlanetScaleDriver"
 import { ReadStream } from "../../platform/PlatformTools"
 import { OrmUtils } from "../../util/OrmUtils"
 import { QueryFailedError } from "../../error/QueryFailedError"
@@ -27,6 +26,8 @@ import { TypeORMError } from "../../error"
 import { MetadataTableType } from "../types/MetadataTableType"
 import { InstanceChecker } from "../../util/InstanceChecker"
 import { Connection } from "@planetscale/database"
+import { PlanetScaleDriver } from "./PlanetScaleDriver"
+import { PlanetScaleServerlessDriver } from "./PlanetScaleServerlessDriver"
 
 /**
  * Runs queries on PlanetScale serverless database connections. This is a copy of the
@@ -49,6 +50,13 @@ export class PlanetScaleQueryRunner
     // Protected Properties
     // -------------------------------------------------------------------------
 
+    /**
+     * Promise used to obtain a database connection from a pool for a first time.
+     *
+     * Used by mysql PlanetScale driver.
+     */
+    protected databaseConnectionPromise: Promise<any>
+
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
@@ -68,9 +76,24 @@ export class PlanetScaleQueryRunner
     /**
      * Creates/uses database connection from the connection pool to perform further operations.
      * Returns obtained database connection.
+     *
+     * Used for mysql PlanetScale driver.
      */
     connect(): Promise<any> {
-        throw new TypeORMError("This method is not supported by PlanetScale.")
+        if (this.databaseConnection)
+            return Promise.resolve(this.databaseConnection)
+
+        if (this.databaseConnectionPromise)
+            return this.databaseConnectionPromise
+
+        this.databaseConnectionPromise = this.driver
+            .obtainMasterConnection()
+            .then((connection) => {
+                this.databaseConnection = connection
+                return this.databaseConnection
+            })
+
+        return this.databaseConnectionPromise
     }
 
     /**
@@ -79,6 +102,7 @@ export class PlanetScaleQueryRunner
      */
     release(): Promise<void> {
         this.isReleased = true
+        if (this.databaseConnection) this.databaseConnection.release()
         return Promise.resolve()
     }
 
@@ -160,12 +184,41 @@ export class PlanetScaleQueryRunner
         parameters?: any[],
         useStructuredResult = false,
     ): Promise<any> {
+        switch (this.driver.type) {
+            case "serverless":
+                return await this.queryServerless(
+                    query,
+                    parameters,
+                    useStructuredResult,
+                )
+            case "mysql":
+                return await this.queryMysql(
+                    query,
+                    parameters,
+                    useStructuredResult,
+                )
+            default:
+                throw new TypeORMError(
+                    `PlanetScale driver does not support type ${this.driver.type}`,
+                )
+        }
+    }
+
+    /**
+     * Executes a raw SQL query.
+     */
+    protected async queryServerless(
+        query: string,
+        parameters?: any[],
+        useStructuredResult = false,
+    ): Promise<any> {
         if (this.isReleased) throw new QueryRunnerAlreadyReleasedError()
 
         let databaseConnection: Connection
+        let driver = this.driver as PlanetScaleServerlessDriver
         return new Promise(async (ok, fail) => {
             try {
-                databaseConnection = await this.driver.obtainConnection()
+                databaseConnection = await driver.obtainConnection()
                 this.driver.dataSource.logger.logQuery(query, parameters, this)
                 const queryStartTime = +new Date()
 
@@ -224,8 +277,82 @@ export class PlanetScaleQueryRunner
                 fail(new QueryFailedError(query, parameters, err))
             } finally {
                 if (databaseConnection) {
-                    this.driver.releaseConnection(databaseConnection)
+                    driver.releaseConnection(databaseConnection)
                 }
+            }
+        })
+    }
+
+    /**
+     * Executes a raw SQL query.
+     */
+    protected async queryMysql(
+        query: string,
+        parameters?: any[],
+        useStructuredResult = false,
+    ): Promise<any> {
+        if (this.isReleased) throw new QueryRunnerAlreadyReleasedError()
+
+        return new Promise(async (ok, fail) => {
+            try {
+                const databaseConnection = await this.connect()
+                this.driver.dataSource.logger.logQuery(query, parameters, this)
+                const queryStartTime = +new Date()
+                databaseConnection.query(
+                    query,
+                    parameters,
+                    (err: any, raw: any) => {
+                        // log slow queries if maxQueryExecution time is set
+                        const maxQueryExecutionTime =
+                            this.driver.options.maxQueryExecutionTime
+                        const queryEndTime = +new Date()
+                        const queryExecutionTime = queryEndTime - queryStartTime
+                        if (
+                            maxQueryExecutionTime &&
+                            queryExecutionTime > maxQueryExecutionTime
+                        )
+                            this.driver.dataSource.logger.logQuerySlow(
+                                queryExecutionTime,
+                                query,
+                                parameters,
+                                this,
+                            )
+
+                        if (err) {
+                            this.driver.dataSource.logger.logQueryError(
+                                err,
+                                query,
+                                parameters,
+                                this,
+                            )
+                            return fail(
+                                new QueryFailedError(query, parameters, err),
+                            )
+                        }
+
+                        const result = new QueryResult()
+
+                        result.raw = raw
+
+                        try {
+                            result.records = Array.from(raw)
+                        } catch {
+                            // Do nothing.
+                        }
+
+                        if (raw?.hasOwnProperty("affectedRows")) {
+                            result.affected = raw.affectedRows
+                        }
+
+                        if (useStructuredResult) {
+                            ok(result)
+                        } else {
+                            ok(result.raw)
+                        }
+                    },
+                )
+            } catch (err) {
+                fail(err)
             }
         })
     }
@@ -486,10 +613,10 @@ export class PlanetScaleQueryRunner
         const upQueries: Query[] = []
         const downQueries: Query[] = []
 
-        if (dropForeignKeys)
-            table.foreignKeys.forEach((foreignKey) =>
-                upQueries.push(this.dropForeignKeySql(table, foreignKey)),
-            )
+        // if (dropForeignKeys)
+        //     table.foreignKeys.forEach((foreignKey) =>
+        //         upQueries.push(this.dropForeignKeySql(table, foreignKey)),
+        //     )
 
         table.indices.forEach((index) =>
             upQueries.push(this.dropIndexSql(table, index)),
@@ -2073,6 +2200,10 @@ export class PlanetScaleQueryRunner
         throw new TypeORMError(
             `PlanetScale does not support foreign key constraints.`,
         )
+        // const promises = foreignKeys.map((foreignKey) =>
+        //     this.createForeignKey(tableOrName, foreignKey),
+        // )
+        // await Promise.all(promises)
     }
 
     /**
@@ -2112,6 +2243,10 @@ export class PlanetScaleQueryRunner
         throw new TypeORMError(
             `PlanetScale does not support foreign key constraints.`,
         )
+        // const promises = foreignKeys.map((foreignKey) =>
+        //     this.dropForeignKey(tableOrName, foreignKey),
+        // )
+        // await Promise.all(promises)
     }
 
     /**
@@ -2363,6 +2498,7 @@ export class PlanetScaleQueryRunner
                     return `SELECT \`TABLE_SCHEMA\`, \`TABLE_NAME\` FROM \`INFORMATION_SCHEMA\`.\`TABLES\` WHERE \`TABLE_SCHEMA\` = '${database}' AND \`TABLE_NAME\` = '${name}'`
                 })
                 .join(" UNION ")
+
             dbTables.push(...(await this.query(tablesSql)))
         }
 

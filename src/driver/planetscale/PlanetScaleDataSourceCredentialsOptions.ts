@@ -30,4 +30,18 @@ export interface PlanetScaleDataSourceCredentialsOptions {
      * Database name to connect to.
      */
     readonly database?: string
+
+    /**
+     * Database port.
+     * Defaults to 3306.
+     * Used by mysql connector.
+     */
+    readonly port?: number
+
+    /**
+     * Require SSL connection.
+     * Defaults to true.
+     * Used by mysql connector.
+     */
+    readonly ssl?: boolean
 }

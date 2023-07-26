@@ -21,7 +21,7 @@ describe("many-to-many", function () {
     after(() => dataSource.destroy())
 
     async function setupDataSource() {
-        const options = setupSingleTestingConnection("planetscale-serverless", {
+        const options = setupSingleTestingConnection("planetscale", {
             entities: [
                 __dirname + "/../../sample/sample4-many-to-many/entity/*",
             ],
