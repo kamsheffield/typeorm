@@ -44,7 +44,7 @@ describe("github issues > #85 - Column option insert: false, update: false", () 
                 if (
                     connection.driver.options.type === "spanner" ||
                     // This test is causing PlanetScale to timeout on the next test ran.
-                    connection.driver.options.type === "planetscale-serverless"
+                    connection.driver.options.type === "planetscale"
                 )
                     return
 

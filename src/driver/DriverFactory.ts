@@ -19,7 +19,9 @@ import { SapDriver } from "./sap/SapDriver"
 import { BetterSqlite3Driver } from "./better-sqlite3/BetterSqlite3Driver"
 import { CapacitorDriver } from "./capacitor/CapacitorDriver"
 import { SpannerDriver } from "./spanner/SpannerDriver"
-import { PlanetScaleDriver } from "./planetscale/PlanetScaleDriver"
+import { PlanetScaleServerlessDriver } from "./planetscale/PlanetScaleServerlessDriver"
+import { PlanetScaleMysqlDriver } from "./planetscale/PlanetScaleMysqlDriver"
+import { TypeORMError } from "../error"
 
 /**
  * Helps to create drivers.
@@ -69,8 +71,16 @@ export class DriverFactory {
                 return new CapacitorDriver(connection)
             case "spanner":
                 return new SpannerDriver(connection)
-            case "planetscale-serverless":
-                return new PlanetScaleDriver(connection)
+            case "planetscale":
+                if (connection.options.connectorType === "serverless") {
+                    return new PlanetScaleServerlessDriver(connection)
+                } else if (connection.options.connectorType === "mysql") {
+                    return new PlanetScaleMysqlDriver(connection)
+                } else {
+                    throw new TypeORMError(
+                        `Invalid connector type: ${connection.options.connectorType}, must be either "serverless" or "mysql"`,
+                    )
+                }
             default:
                 throw new MissingDriverError(type, [
                     "aurora-mysql",
@@ -92,7 +102,7 @@ export class DriverFactory {
                     "sqlite",
                     "sqljs",
                     "spanner",
-                    "planetscale-serverless",
+                    "planetscale",
                 ])
         }
     }

@@ -1,6 +1,6 @@
 [
   {
-    "skip": false,
+    "skip": true,
     "name": "mysql",
     "type": "mysql",
     "host": "localhost",
@@ -11,7 +11,7 @@
     "logging": false
   },
   {
-    "skip": false,
+    "skip": true,
     "name": "mariadb",
     "type": "mariadb",
     "host": "localhost",
@@ -22,7 +22,45 @@
     "logging": false
   },
   {
+    "skip": true,
+    "name": "mariadb-nofk",
+    "type": "mariadb",
+    "host": "localhost",
+    "port": 3307,
+    "username": "root",
+    "password": "admin",
+    "database": "test",
+    "disableForeignKeyConstraints": true,
+    "logging": false
+  },
+  {
     "skip": false,
+    "name": "planetscale-serverless",
+    "type": "planetscale",
+    "connectorType": "serverless",
+    "host": "[planetscale host]",
+    "username": "[planetscale username]",
+    "password": "[planetscale password]",
+    "database": "[planetscale database name]",
+    "disableForeignKeyConstraints": true,
+    "logging": false
+  },
+  {
+    "skip": true,
+    "name": "planetscale-mysql",
+    "type": "planetscale",
+    "connectorType": "mysql",
+    "host": "[planetscale host]",
+    "username": "[planetscale username]",
+    "password": "[planetscale password]",
+    "database": "[planetscale database name]",
+    "port": 3306,
+    "ssl": true,
+    "disableForeignKeyConstraints": true,
+    "logging": false
+  },
+  {
+    "skip": true,
     "name": "sqlite",
     "type": "sqlite",
     "database": "./temp/sqlitedb-1.db",
@@ -30,7 +68,7 @@
     "relationLoadStrategy": "join"
   },
   {
-    "skip": false,
+    "skip": true,
     "name": "sqlite-2",
     "type": "sqlite",
     "database": "./temp/sqlitedb-2.db",
@@ -38,14 +76,14 @@
     "relationLoadStrategy": "query"
   },
   {
-    "skip": false,
+    "skip": true,
     "name": "better-sqlite3",
     "type": "better-sqlite3",
     "database": "temp/better-sqlite3db.db",
     "logging": false
   },
   {
-    "skip": false,
+    "skip": true,
     "name": "postgres",
     "type": "postgres",
     "host": "localhost",
@@ -80,7 +118,7 @@
     "logging": false
   },
   {
-    "skip": false,
+    "skip": true,
     "name": "cockroachdb",
     "type": "cockroachdb",
     "host": "localhost",
@@ -90,7 +128,7 @@
     "database": "defaultdb"
   },
   {
-    "skip": false,
+    "skip": true,
     "name": "sap",
     "type": "sap",
     "host": "192.168.56.102",
@@ -101,7 +139,7 @@
     "logging": false
   },
   {
-    "skip": false,
+    "skip": true,
     "disabledIfNotEnabledImplicitly": true,
     "name": "mongodb",
     "type": "mongodb",

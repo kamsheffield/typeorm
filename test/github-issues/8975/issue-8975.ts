@@ -12,7 +12,7 @@ describe("cli init command", () => {
         "postgres",
         "cockroachdb",
         "sqlite",
-        "planetscale-serverless",
+        "planetscale",
         //"better-sqlite3",
         // "oracle", // as always oracle have issues: dependency installation doesn't work on mac m1 due to missing oracle binaries for m1
         //"mssql",

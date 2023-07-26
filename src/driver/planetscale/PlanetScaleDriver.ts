@@ -22,25 +22,24 @@ import { View } from "../../schema-builder/view/View"
 import { TableForeignKey } from "../../schema-builder/table/TableForeignKey"
 import { InstanceChecker } from "../../util/InstanceChecker"
 import { UpsertType } from "../types/UpsertType"
-import { connect, Connection } from "@planetscale/database"
 
 /**
  * Organizes communication with PlanetScale database via the serverless driver.
  */
-export class PlanetScaleDriver implements Driver {
+export abstract class PlanetScaleDriver implements Driver {
     // -------------------------------------------------------------------------
     // Public Properties
     // -------------------------------------------------------------------------
 
     /**
+     * Connection type used by driver.
+     */
+    type: "serverless" | "mysql"
+
+    /**
      * DataSource used by driver.
      */
     dataSource: DataSource
-
-    /**
-     * Holds all Connection objects that are used by this driver.
-     */
-    connectionPool: Array<Connection>
 
     // -------------------------------------------------------------------------
     // Public Implemented Properties
@@ -53,6 +52,7 @@ export class PlanetScaleDriver implements Driver {
 
     /**
      * Version of the database PlanetScale returns, likely a version of MySQL.
+     * Requires a SQL query to the DB, so it is not always set.
      */
     version?: string
 
@@ -315,7 +315,6 @@ export class PlanetScaleDriver implements Driver {
         this.dataSource = dataSource
         this.options =
             dataSource.options as unknown as PlanetScaleDataSourceOptions
-        this.connectionPool = []
         this.database = DriverUtils.buildDriverOptions(this.options).database
     }
 
@@ -348,10 +347,7 @@ export class PlanetScaleDriver implements Driver {
     /**
      * Closes connection with the database.
      */
-    async disconnect(): Promise<void> {
-        // clear the connection pool thereby closing all connections.
-        this.connectionPool.length = 0
-    }
+    async disconnect(): Promise<void> {}
 
     /**
      * Creates a schema builder used to build and sync a schema.
@@ -786,30 +782,6 @@ export class PlanetScaleDriver implements Driver {
     }
 
     /**
-     * For use by the PlanetScaleQueryRunner. Returns a new connection from the connection pool.
-     *
-     * @returns Connection An active connection from the connection pool.
-     */
-    obtainConnection(): Connection {
-        let connection = this.connectionPool.pop()
-        if (!connection) {
-            connection = this.createConnection()
-            //console.log("Created new connection")
-        }
-        return connection
-    }
-
-    /**
-     * When finished with a connection, it should be released back into the pool.
-     *
-     * @param connection The connection to be released back into the connection pool.
-     */
-    releaseConnection(connection: Connection): void {
-        this.connectionPool.push(connection)
-        //console.log("Released connection: size: " + this.connectionPool.length)
-    }
-
-    /**
      * Creates generated map of values generated or returned by database after INSERT query.
      */
     createGeneratedMap(
@@ -1094,19 +1066,5 @@ export class PlanetScaleDriver implements Driver {
         comment = comment.replace(/\u0000/g, "") // Null bytes aren't allowed in comments
 
         return comment
-    }
-
-    /**
-     * Creates a new connection to PlanetScale.
-     *
-     * @returns Connection
-     */
-    private createConnection(): Connection {
-        return connect({
-            url: this.options.url,
-            host: this.options.host,
-            username: this.options.username,
-            password: this.options.password,
-        })
     }
 }

@@ -154,7 +154,7 @@ describe("query runner > rename table", () => {
                 if (
                     connection.driver.options.type === "cockroachdb" ||
                     connection.driver.options.type === "spanner" ||
-                    connection.driver.options.type === "planetscale-serverless"
+                    connection.driver.options.type === "planetscale"
                 ) {
                     return
                 }

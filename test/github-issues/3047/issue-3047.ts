@@ -39,11 +39,7 @@ describe("github issues > #3047 Mysqsl on duplicate key update use current value
         Promise.all(
             connections.map(async (connection) => {
                 try {
-                    if (
-                        connection.driver.options.type ===
-                        "planetscale-serverless"
-                    )
-                        return
+                    if (connection.driver.options.type === "planetscale") return
                     if (DriverUtils.isMySQLFamily(connection.driver)) {
                         const UserRepository =
                             connection.manager.getRepository(User)

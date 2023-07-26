@@ -91,7 +91,7 @@ describe("query builder > locking", () => {
                     DriverUtils.isSQLiteFamily(connection.driver) ||
                     connection.driver.options.type === "sap" ||
                     connection.driver.options.type === "spanner" ||
-                    connection.driver.options.type === "planetscale-serverless"
+                    connection.driver.options.type === "planetscale"
                 )
                     return
 
@@ -239,8 +239,7 @@ describe("query builder > locking", () => {
     it("should not throw error if pessimistic_partial_write lock used with transaction", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (connection.driver.options.type === "planetscale-serverless")
-                    return
+                if (connection.driver.options.type === "planetscale") return
 
                 if (connection.driver.options.type === "postgres") {
                     return connection.manager.transaction((entityManager) => {
@@ -326,8 +325,7 @@ describe("query builder > locking", () => {
     it("should not throw error if pessimistic_write_or_fail lock used with transaction", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (connection.driver.options.type === "planetscale-serverless")
-                    return
+                if (connection.driver.options.type === "planetscale") return
 
                 if (
                     connection.driver.options.type === "postgres" ||
@@ -378,8 +376,7 @@ describe("query builder > locking", () => {
     it("should attach pessimistic read lock statement on query if locking enabled", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (connection.driver.options.type === "planetscale-serverless")
-                    return
+                if (connection.driver.options.type === "planetscale") return
 
                 if (
                     DriverUtils.isSQLiteFamily(connection.driver) ||
@@ -462,7 +459,7 @@ describe("query builder > locking", () => {
                     DriverUtils.isSQLiteFamily(connection.driver) ||
                     connection.driver.options.type === "sap" ||
                     connection.driver.options.type === "spanner" ||
-                    connection.driver.options.type === "planetscale-serverless"
+                    connection.driver.options.type === "planetscale"
                 )
                     return
 
@@ -576,8 +573,7 @@ describe("query builder > locking", () => {
     it("should attach pessimistic_partial_write lock statement on query if locking enabled", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (connection.driver.options.type === "planetscale-serverless")
-                    return
+                if (connection.driver.options.type === "planetscale") return
                 if (
                     connection.driver.options.type === "postgres" ||
                     DriverUtils.isMySQLFamily(connection.driver)
@@ -617,8 +613,7 @@ describe("query builder > locking", () => {
     it("should attach pessimistic_write_or_fail lock statement on query if locking enabled", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (connection.driver.options.type === "planetscale-serverless")
-                    return
+                if (connection.driver.options.type === "planetscale") return
                 if (
                     connection.driver.options.type === "postgres" ||
                     DriverUtils.isMySQLFamily(connection.driver) ||
@@ -1101,8 +1096,7 @@ describe("query builder > locking", () => {
     it("pessimistic_partial_write and skip_locked works", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (connection.driver.options.type === "planetscale-serverless")
-                    return
+                if (connection.driver.options.type === "planetscale") return
                 if (
                     connection.driver.options.type === "postgres" ||
                     DriverUtils.isMySQLFamily(connection.driver)
@@ -1122,8 +1116,7 @@ describe("query builder > locking", () => {
     it("pessimistic_write_or_fail and skip_locked ignores skip_locked", () =>
         Promise.all(
             connections.map(async (connection) => {
-                if (connection.driver.options.type === "planetscale-serverless")
-                    return
+                if (connection.driver.options.type === "planetscale") return
                 if (
                     connection.driver.options.type === "postgres" ||
                     DriverUtils.isMySQLFamily(connection.driver)
