@@ -11,7 +11,37 @@
  * DO NOT IMPORT THIS CLASS -
  * This is a dummy class for replacement via `package.json` in browser builds
  */
+export class AuroraMysqlDriver {}
+
+/**
+ * DO NOT IMPORT THIS CLASS -
+ * This is a dummy class for replacement via `package.json` in browser builds
+ */
+export class AuroraPostgresDriver {}
+
+/**
+ * DO NOT IMPORT THIS CLASS -
+ * This is a dummy class for replacement via `package.json` in browser builds
+ */
+export class BetterSqlite3Driver {}
+
+/**
+ * DO NOT IMPORT THIS CLASS -
+ * This is a dummy class for replacement via `package.json` in browser builds
+ */
 export class MongoDriver {}
+
+/**
+ * DO NOT IMPORT THIS CLASS -
+ * This is a dummy class for replacement via `package.json` in browser builds
+ */
+export class CapacitorDriver {}
+
+/**
+ * DO NOT IMPORT THIS CLASS -
+ * This is a dummy class for replacement via `package.json` in browser builds
+ */
+export class CockroachDriver {}
 
 /**
  * DO NOT IMPORT THIS CLASS -
@@ -36,24 +66,6 @@ export class MongoRepository {}
  * This is a dummy class for replacement via `package.json` in browser builds
  */
 export class PostgresDriver {}
-
-/**
- * DO NOT IMPORT THIS CLASS -
- * This is a dummy class for replacement via `package.json` in browser builds
- */
-export class AuroraMysqlDriver {}
-
-/**
- * DO NOT IMPORT THIS CLASS -
- * This is a dummy class for replacement via `package.json` in browser builds
- */
-export class CockroachDriver {}
-
-/**
- * DO NOT IMPORT THIS CLASS -
- * This is a dummy class for replacement via `package.json` in browser builds
- */
-export class AuroraPostgresDriver {}
 
 /**
  * DO NOT IMPORT THIS CLASS -
@@ -89,19 +101,7 @@ export class SqliteDriver {}
  * DO NOT IMPORT THIS CLASS -
  * This is a dummy class for replacement via `package.json` in browser builds
  */
-export class BetterSqlite3Driver {}
-
-/**
- * DO NOT IMPORT THIS CLASS -
- * This is a dummy class for replacement via `package.json` in browser builds
- */
 export class SpannerDriver {}
-
-/**
- * DO NOT IMPORT THIS CLASS -
- * This is a dummy class for replacement via `package.json` in browser builds
- */
-export class CapacitorDriver {}
 
 /**
  * DO NOT IMPORT THIS CLASS -
