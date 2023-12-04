@@ -1,5 +1,5 @@
-import "reflect-metadata"
 import { expect } from "chai"
+import "reflect-metadata"
 
 import { DataSource, QueryRunner, Table } from "../../../src"
 import {
@@ -34,7 +34,7 @@ const createTestTable = async (queryRunner: QueryRunner) => {
 describe("github issues > #6195 feature: fake migrations for existing tables", () => {
     let dataSources: DataSource[]
 
-    before(async () => {
+    beforeEach(async () => {
         dataSources = await createTestingConnections({
             entities: [__dirname + "/entity/*{.js,.ts}"],
             schemaCreate: false,
@@ -53,7 +53,7 @@ describe("github issues > #6195 feature: fake migrations for existing tables", (
         }
     })
 
-    after(async () => {
+    afterEach(async () => {
         await closeTestingConnections(dataSources)
     })
 
@@ -81,7 +81,7 @@ describe("github issues > #6195 feature: fake migrations for existing tables", (
     })
 
     describe("fake rollback tests", () => {
-        before(async () => {
+        beforeEach(async () => {
             for (const dataSource of dataSources) {
                 if (dataSource.options.type === "mongodb") return
                 await dataSource.runMigrations({
