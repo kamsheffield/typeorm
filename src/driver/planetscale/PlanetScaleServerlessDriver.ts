@@ -6,7 +6,6 @@ import { connect, Connection } from "@planetscale/database"
  * PlanetScale driver using the PlanetScale serverless driver for Javascript.
  */
 export class PlanetScaleServerlessDriver extends PlanetScaleDriver {
-
     /**
      * This driver uses the PlanetScale serverless driver for Javascript to connect to PlanetScale.
      */
