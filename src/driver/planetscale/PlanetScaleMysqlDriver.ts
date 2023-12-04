@@ -12,7 +12,6 @@ import { PlanetScaleDataSourceOptions } from "./PlanetScaleDataSourceOptions"
  * PlanetScale driver using the mysql package.
  */
 export class PlanetScaleMysqlDriver extends PlanetScaleDriver {
-
     /**
      * This driver uses the mysql package to connect to PlanetScale.
      */

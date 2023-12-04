@@ -1,31 +1,31 @@
+import { Connection } from "@planetscale/database"
+import { ObjectLiteral } from "../../common/ObjectLiteral"
+import { TypeORMError } from "../../error"
+import { QueryFailedError } from "../../error/QueryFailedError"
+import { QueryRunnerAlreadyReleasedError } from "../../error/QueryRunnerAlreadyReleasedError"
+import { TransactionNotStartedError } from "../../error/TransactionNotStartedError"
+import { ReadStream } from "../../platform/PlatformTools"
+import { BaseQueryRunner } from "../../query-runner/BaseQueryRunner"
 import { QueryResult } from "../../query-runner/QueryResult"
 import { QueryRunner } from "../../query-runner/QueryRunner"
-import { ObjectLiteral } from "../../common/ObjectLiteral"
-import { TransactionNotStartedError } from "../../error/TransactionNotStartedError"
-import { TableColumn } from "../../schema-builder/table/TableColumn"
+import { TableIndexOptions } from "../../schema-builder/options/TableIndexOptions"
 import { Table } from "../../schema-builder/table/Table"
+import { TableCheck } from "../../schema-builder/table/TableCheck"
+import { TableColumn } from "../../schema-builder/table/TableColumn"
+import { TableExclusion } from "../../schema-builder/table/TableExclusion"
 import { TableForeignKey } from "../../schema-builder/table/TableForeignKey"
 import { TableIndex } from "../../schema-builder/table/TableIndex"
-import { QueryRunnerAlreadyReleasedError } from "../../error/QueryRunnerAlreadyReleasedError"
-import { View } from "../../schema-builder/view/View"
-import { Query } from "../Query"
-import { ReadStream } from "../../platform/PlatformTools"
-import { OrmUtils } from "../../util/OrmUtils"
-import { QueryFailedError } from "../../error/QueryFailedError"
-import { TableIndexOptions } from "../../schema-builder/options/TableIndexOptions"
 import { TableUnique } from "../../schema-builder/table/TableUnique"
-import { BaseQueryRunner } from "../../query-runner/BaseQueryRunner"
+import { View } from "../../schema-builder/view/View"
 import { Broadcaster } from "../../subscriber/Broadcaster"
-import { ColumnType } from "../types/ColumnTypes"
-import { TableCheck } from "../../schema-builder/table/TableCheck"
-import { IsolationLevel } from "../types/IsolationLevel"
-import { TableExclusion } from "../../schema-builder/table/TableExclusion"
-import { VersionUtils } from "../../util/VersionUtils"
-import { ReplicationMode } from "../types/ReplicationMode"
-import { TypeORMError } from "../../error"
-import { MetadataTableType } from "../types/MetadataTableType"
 import { InstanceChecker } from "../../util/InstanceChecker"
-import { Connection } from "@planetscale/database"
+import { OrmUtils } from "../../util/OrmUtils"
+import { VersionUtils } from "../../util/VersionUtils"
+import { Query } from "../Query"
+import { ColumnType } from "../types/ColumnTypes"
+import { IsolationLevel } from "../types/IsolationLevel"
+import { MetadataTableType } from "../types/MetadataTableType"
+import { ReplicationMode } from "../types/ReplicationMode"
 import { PlanetScaleDriver } from "./PlanetScaleDriver"
 import { PlanetScaleServerlessDriver } from "./PlanetScaleServerlessDriver"
 
@@ -2485,19 +2485,24 @@ export class PlanetScaleQueryRunner
             // Avoid data directory scan: TABLE_SCHEMA
             // Avoid database directory scan: TABLE_NAME
             // We only use `TABLE_SCHEMA` and `TABLE_NAME` which is `SKIP_OPEN_TABLE`
-            const tablesSql = tableNames
+            const parsedTableNames = tableNames
                 .filter((tableName) => tableName)
                 .map((tableName) => {
-                    let { database, tableName: name } =
+                    const { tableName: name } =
                         this.driver.parseTableName(tableName)
-
-                    if (!database) {
-                        database = currentDatabase
-                    }
-
-                    return `SELECT \`TABLE_SCHEMA\`, \`TABLE_NAME\` FROM \`INFORMATION_SCHEMA\`.\`TABLES\` WHERE \`TABLE_SCHEMA\` = '${database}' AND \`TABLE_NAME\` = '${name}'`
+                    return name
                 })
-                .join(" UNION ")
+
+            // UNION started to fail with PlanetScale, so we're going to use IN instead
+            const tablesSql = `
+                SELECT \`TABLE_SCHEMA\`,
+                       \`TABLE_NAME\`
+                FROM \`INFORMATION_SCHEMA\`.\`TABLES\`
+                WHERE \`TABLE_SCHEMA\` = '${currentDatabase}'
+                  AND \`TABLE_NAME\` IN (${parsedTableNames
+                      .map((table) => `'${table}'`)
+                      .join(",")})
+            `
 
             dbTables.push(...(await this.query(tablesSql)))
         }
@@ -2508,36 +2513,58 @@ export class PlanetScaleQueryRunner
         // Avoid data directory scan: TABLE_SCHEMA
         // Avoid database directory scan: TABLE_NAME
         // Full columns: CARDINALITY & INDEX_TYPE - everything else is FRM only
-        const statsSubquerySql = dbTables
-            .map(({ TABLE_SCHEMA, TABLE_NAME }) => {
-                return `
-                SELECT
-                    *
-                FROM \`INFORMATION_SCHEMA\`.\`STATISTICS\`
-                WHERE
-                    \`TABLE_SCHEMA\` = '${TABLE_SCHEMA}'
-                    AND
-                    \`TABLE_NAME\` = '${TABLE_NAME}'
-            `
-            })
-            .join(" UNION ")
+        // const statsSubquerySql = dbTables
+        //     .map(({ TABLE_SCHEMA, TABLE_NAME }) => {
+        //         return `
+        //         SELECT
+        //             *
+        //         FROM \`INFORMATION_SCHEMA\`.\`STATISTICS\`
+        //         WHERE
+        //             \`TABLE_SCHEMA\` = '${TABLE_SCHEMA}'
+        //             AND
+        //             \`TABLE_NAME\` = '${TABLE_NAME}'
+        //     `
+        //     })
+        //     .join(" UNION ")
+
+        // UNION started to fail with PlanetScale, so we're going to use IN instead
+        const statsSubquerySql = `
+            SELECT
+                *
+            FROM \`INFORMATION_SCHEMA\`.\`STATISTICS\`
+            WHERE
+                \`TABLE_SCHEMA\` = '${dbTables[0].TABLE_SCHEMA}'
+                AND
+                \`TABLE_NAME\` IN (${dbTables.map((t) => `'${t.TABLE_NAME}'`)})
+        `
 
         // Avoid data directory scan: TABLE_SCHEMA
         // Avoid database directory scan: TABLE_NAME
         // All columns will hit the full table.
-        const kcuSubquerySql = dbTables
-            .map(({ TABLE_SCHEMA, TABLE_NAME }) => {
-                return `
-                SELECT
-                    *
-                FROM \`INFORMATION_SCHEMA\`.\`KEY_COLUMN_USAGE\` \`kcu\`
-                WHERE
-                    \`kcu\`.\`TABLE_SCHEMA\` = '${TABLE_SCHEMA}'
-                    AND
-                    \`kcu\`.\`TABLE_NAME\` = '${TABLE_NAME}'
-            `
-            })
-            .join(" UNION ")
+        // const kcuSubquerySql = dbTables
+        //     .map(({ TABLE_SCHEMA, TABLE_NAME }) => {
+        //         return `
+        //         SELECT
+        //             *
+        //         FROM \`INFORMATION_SCHEMA\`.\`KEY_COLUMN_USAGE\` \`kcu\`
+        //         WHERE
+        //             \`kcu\`.\`TABLE_SCHEMA\` = '${TABLE_SCHEMA}'
+        //             AND
+        //             \`kcu\`.\`TABLE_NAME\` = '${TABLE_NAME}'
+        //     `
+        //     })
+        //     .join(" UNION ")
+
+        // UNION started to fail with PlanetScale, so we're going to use IN instead
+        const kcuSubquerySql = `
+            SELECT
+                *
+            FROM \`INFORMATION_SCHEMA\`.\`KEY_COLUMN_USAGE\` \`kcu\`
+            WHERE
+                \`TABLE_SCHEMA\` = '${dbTables[0].TABLE_SCHEMA}'
+                AND
+                \`TABLE_NAME\` IN (${dbTables.map((t) => `'${t.TABLE_NAME}'`)})
+        `
 
         // Avoid data directory scan: CONSTRAINT_SCHEMA
         // Avoid database directory scan: TABLE_NAME
@@ -2559,20 +2586,32 @@ export class PlanetScaleQueryRunner
         // Avoid data directory scan: TABLE_SCHEMA
         // Avoid database directory scan: TABLE_NAME
         // OPEN_FRM_ONLY applies to all columns
-        const columnsSql = dbTables
-            .map(({ TABLE_SCHEMA, TABLE_NAME }) => {
-                return `
-                SELECT
-                    *
-                FROM
-                    \`INFORMATION_SCHEMA\`.\`COLUMNS\`
-                WHERE
-                    \`TABLE_SCHEMA\` = '${TABLE_SCHEMA}'
-                    AND
-                    \`TABLE_NAME\` = '${TABLE_NAME}'
-                `
-            })
-            .join(" UNION ")
+        // const columnsSql = dbTables
+        //     .map(({ TABLE_SCHEMA, TABLE_NAME }) => {
+        //         return `
+        //         SELECT
+        //             *
+        //         FROM
+        //             \`INFORMATION_SCHEMA\`.\`COLUMNS\`
+        //         WHERE
+        //             \`TABLE_SCHEMA\` = '${TABLE_SCHEMA}'
+        //             AND
+        //             \`TABLE_NAME\` = '${TABLE_NAME}'
+        //         `
+        //     })
+        //     .join(" UNION ")
+
+        // UNION started to fail with PlanetScale, so we're going to use IN instead
+        const columnsSql = `
+            SELECT
+                *
+            FROM
+                \`INFORMATION_SCHEMA\`.\`COLUMNS\`
+            WHERE
+                \`TABLE_SCHEMA\` = '${dbTables[0].TABLE_SCHEMA}'
+                AND
+                \`TABLE_NAME\` IN (${dbTables.map((t) => `'${t.TABLE_NAME}'`)})
+        `
 
         // No Optimizations are available for COLLATIONS
         const collationsSql = `
