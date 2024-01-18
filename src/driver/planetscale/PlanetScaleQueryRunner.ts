@@ -35,8 +35,7 @@ import { PlanetScaleServerlessDriver } from "./PlanetScaleServerlessDriver"
  */
 export class PlanetScaleQueryRunner
     extends BaseQueryRunner
-    implements QueryRunner
-{
+    implements QueryRunner {
     // -------------------------------------------------------------------------
     // Public Implemented Properties
     // -------------------------------------------------------------------------
@@ -431,7 +430,7 @@ export class PlanetScaleQueryRunner
                 this.driver.dataSource.logger.log(
                     "warn",
                     "PlanetScale driver does not support multiple databases, using the first one: " +
-                        database,
+                    database,
                 )
             }
             return database
@@ -755,8 +754,7 @@ export class PlanetScaleQueryRunner
 
             upQueries.push(
                 new Query(
-                    `ALTER TABLE ${this.escapePath(newTable)} DROP INDEX \`${
-                        index.name
+                    `ALTER TABLE ${this.escapePath(newTable)} DROP INDEX \`${index.name
                     }\`, ADD ${indexType}INDEX \`${newIndexName}\` (${columnNames})${indexParser}`,
                 ),
             )
@@ -764,8 +762,7 @@ export class PlanetScaleQueryRunner
                 new Query(
                     `ALTER TABLE ${this.escapePath(
                         newTable,
-                    )} DROP INDEX \`${newIndexName}\`, ADD ${indexType}INDEX \`${
-                        index.name
+                    )} DROP INDEX \`${newIndexName}\`, ADD ${indexType}INDEX \`${index.name
                     }\` (${columnNames})${indexParser}`,
                 ),
             )
@@ -804,8 +801,7 @@ export class PlanetScaleQueryRunner
 
             // build queries
             let up =
-                `ALTER TABLE ${this.escapePath(newTable)} DROP FOREIGN KEY \`${
-                    foreignKey.name
+                `ALTER TABLE ${this.escapePath(newTable)} DROP FOREIGN KEY \`${foreignKey.name
                 }\`, ADD CONSTRAINT \`${newForeignKeyName}\` FOREIGN KEY (${columnNames}) ` +
                 `REFERENCES ${this.escapePath(
                     this.getTablePath(foreignKey),
@@ -816,8 +812,7 @@ export class PlanetScaleQueryRunner
             let down =
                 `ALTER TABLE ${this.escapePath(
                     newTable,
-                )} DROP FOREIGN KEY \`${newForeignKeyName}\`, ADD CONSTRAINT \`${
-                    foreignKey.name
+                )} DROP FOREIGN KEY \`${newForeignKeyName}\`, ADD CONSTRAINT \`${foreignKey.name
                 }\` FOREIGN KEY (${columnNames}) ` +
                 `REFERENCES ${this.escapePath(
                     this.getTablePath(foreignKey),
@@ -837,6 +832,49 @@ export class PlanetScaleQueryRunner
         // rename old table and replace it in cached tabled;
         oldTable.name = newTable.name
         this.replaceCachedTable(oldTable, newTable)
+    }
+
+    /**
+     * Change table comment.
+     */
+    async changeTableComment(
+        tableOrName: Table | string,
+        newComment?: string,
+    ): Promise<void> {
+        const upQueries: Query[] = []
+        const downQueries: Query[] = []
+
+        const table = InstanceChecker.isTable(tableOrName)
+            ? tableOrName
+            : await this.getCachedTable(tableOrName)
+
+        newComment = this.escapeComment(newComment)
+        const comment = this.escapeComment(table.comment)
+
+        if (newComment === comment) {
+            return
+        }
+
+        const newTable = table.clone()
+
+        upQueries.push(
+            new Query(
+                `ALTER TABLE ${this.escapePath(
+                    newTable,
+                )} COMMENT ${newComment}`,
+            ),
+        )
+        downQueries.push(
+            new Query(
+                `ALTER TABLE ${this.escapePath(table)} COMMENT ${comment}`,
+            ),
+        )
+
+        await this.executeQueries(upQueries, downQueries)
+
+        // change table comment and replace it in cached tabled;
+        table.comment = newTable.comment
+        this.replaceCachedTable(table, newTable)
     }
 
     /**
@@ -867,8 +905,7 @@ export class PlanetScaleQueryRunner
         )
         downQueries.push(
             new Query(
-                `ALTER TABLE ${this.escapePath(table)} DROP COLUMN \`${
-                    column.name
+                `ALTER TABLE ${this.escapePath(table)} DROP COLUMN \`${column.name
                 }\``,
             ),
         )
@@ -887,8 +924,7 @@ export class PlanetScaleQueryRunner
                 nonGeneratedColumn.generationStrategy = undefined
                 upQueries.push(
                     new Query(
-                        `ALTER TABLE ${this.escapePath(table)} CHANGE \`${
-                            column.name
+                        `ALTER TABLE ${this.escapePath(table)} CHANGE \`${column.name
                         }\` ${this.buildCreateColumnSql(
                             nonGeneratedColumn,
                             true,
@@ -897,8 +933,7 @@ export class PlanetScaleQueryRunner
                 )
                 downQueries.push(
                     new Query(
-                        `ALTER TABLE ${this.escapePath(table)} CHANGE \`${
-                            nonGeneratedColumn.name
+                        `ALTER TABLE ${this.escapePath(table)} CHANGE \`${nonGeneratedColumn.name
                         }\` ${this.buildCreateColumnSql(column, true)}`,
                     ),
                 )
@@ -945,15 +980,13 @@ export class PlanetScaleQueryRunner
                 nonGeneratedColumn.generationStrategy = undefined
                 upQueries.push(
                     new Query(
-                        `ALTER TABLE ${this.escapePath(table)} CHANGE \`${
-                            nonGeneratedColumn.name
+                        `ALTER TABLE ${this.escapePath(table)} CHANGE \`${nonGeneratedColumn.name
                         }\` ${this.buildCreateColumnSql(column, true)}`,
                     ),
                 )
                 downQueries.push(
                     new Query(
-                        `ALTER TABLE ${this.escapePath(table)} CHANGE \`${
-                            column.name
+                        `ALTER TABLE ${this.escapePath(table)} CHANGE \`${column.name
                         }\` ${this.buildCreateColumnSql(
                             nonGeneratedColumn,
                             true,
@@ -1010,15 +1043,13 @@ export class PlanetScaleQueryRunner
             )
             upQueries.push(
                 new Query(
-                    `ALTER TABLE ${this.escapePath(table)} ADD UNIQUE INDEX \`${
-                        uniqueIndex.name
+                    `ALTER TABLE ${this.escapePath(table)} ADD UNIQUE INDEX \`${uniqueIndex.name
                     }\` (\`${column.name}\`)`,
                 ),
             )
             downQueries.push(
                 new Query(
-                    `ALTER TABLE ${this.escapePath(table)} DROP INDEX \`${
-                        uniqueIndex.name
+                    `ALTER TABLE ${this.escapePath(table)} DROP INDEX \`${uniqueIndex.name
                     }\``,
                 ),
             )
@@ -1117,8 +1148,7 @@ export class PlanetScaleQueryRunner
                 // We don't change any column properties, just rename it.
                 upQueries.push(
                     new Query(
-                        `ALTER TABLE ${this.escapePath(table)} CHANGE \`${
-                            oldColumn.name
+                        `ALTER TABLE ${this.escapePath(table)} CHANGE \`${oldColumn.name
                         }\` \`${newColumn.name}\` ${this.buildCreateColumnSql(
                             oldColumn,
                             true,
@@ -1128,8 +1158,7 @@ export class PlanetScaleQueryRunner
                 )
                 downQueries.push(
                     new Query(
-                        `ALTER TABLE ${this.escapePath(table)} CHANGE \`${
-                            newColumn.name
+                        `ALTER TABLE ${this.escapePath(table)} CHANGE \`${newColumn.name
                         }\` \`${oldColumn.name}\` ${this.buildCreateColumnSql(
                             oldColumn,
                             true,
@@ -1179,8 +1208,7 @@ export class PlanetScaleQueryRunner
                         new Query(
                             `ALTER TABLE ${this.escapePath(
                                 table,
-                            )} DROP INDEX \`${
-                                index.name
+                            )} DROP INDEX \`${index.name
                             }\`, ADD ${indexType}INDEX \`${newIndexName}\` (${columnNames})${indexParser}`,
                         ),
                     )
@@ -1188,8 +1216,7 @@ export class PlanetScaleQueryRunner
                         new Query(
                             `ALTER TABLE ${this.escapePath(
                                 table,
-                            )} DROP INDEX \`${newIndexName}\`, ADD ${indexType}INDEX \`${
-                                index.name
+                            )} DROP INDEX \`${newIndexName}\`, ADD ${indexType}INDEX \`${index.name
                             }\` (${columnNames})${indexParser}`,
                         ),
                     )
@@ -1238,8 +1265,7 @@ export class PlanetScaleQueryRunner
                         let up =
                             `ALTER TABLE ${this.escapePath(
                                 table,
-                            )} DROP FOREIGN KEY \`${
-                                foreignKey.name
+                            )} DROP FOREIGN KEY \`${foreignKey.name
                             }\`, ADD CONSTRAINT \`${newForeignKeyName}\` FOREIGN KEY (${columnNames}) ` +
                             `REFERENCES ${this.escapePath(
                                 this.getTablePath(foreignKey),
@@ -1252,8 +1278,7 @@ export class PlanetScaleQueryRunner
                         let down =
                             `ALTER TABLE ${this.escapePath(
                                 table,
-                            )} DROP FOREIGN KEY \`${newForeignKeyName}\`, ADD CONSTRAINT \`${
-                                foreignKey.name
+                            )} DROP FOREIGN KEY \`${newForeignKeyName}\`, ADD CONSTRAINT \`${foreignKey.name
                             }\` FOREIGN KEY (${columnNames}) ` +
                             `REFERENCES ${this.escapePath(
                                 this.getTablePath(foreignKey),
@@ -1283,15 +1308,13 @@ export class PlanetScaleQueryRunner
             if (this.isColumnChanged(oldColumn, newColumn, true, true)) {
                 upQueries.push(
                     new Query(
-                        `ALTER TABLE ${this.escapePath(table)} CHANGE \`${
-                            oldColumn.name
+                        `ALTER TABLE ${this.escapePath(table)} CHANGE \`${oldColumn.name
                         }\` ${this.buildCreateColumnSql(newColumn, true)}`,
                     ),
                 )
                 downQueries.push(
                     new Query(
-                        `ALTER TABLE ${this.escapePath(table)} CHANGE \`${
-                            newColumn.name
+                        `ALTER TABLE ${this.escapePath(table)} CHANGE \`${newColumn.name
                         }\` ${this.buildCreateColumnSql(oldColumn, true)}`,
                     ),
                 )
@@ -1391,8 +1414,7 @@ export class PlanetScaleQueryRunner
 
                     upQueries.push(
                         new Query(
-                            `ALTER TABLE ${this.escapePath(table)} CHANGE \`${
-                                generatedColumn.name
+                            `ALTER TABLE ${this.escapePath(table)} CHANGE \`${generatedColumn.name
                             }\` ${this.buildCreateColumnSql(
                                 nonGeneratedColumn,
                                 true,
@@ -1401,8 +1423,7 @@ export class PlanetScaleQueryRunner
                     )
                     downQueries.push(
                         new Query(
-                            `ALTER TABLE ${this.escapePath(table)} CHANGE \`${
-                                nonGeneratedColumn.name
+                            `ALTER TABLE ${this.escapePath(table)} CHANGE \`${nonGeneratedColumn.name
                             }\` ${this.buildCreateColumnSql(
                                 generatedColumn,
                                 true,
@@ -1502,8 +1523,7 @@ export class PlanetScaleQueryRunner
 
                     upQueries.push(
                         new Query(
-                            `ALTER TABLE ${this.escapePath(table)} CHANGE \`${
-                                nonGeneratedColumn.name
+                            `ALTER TABLE ${this.escapePath(table)} CHANGE \`${nonGeneratedColumn.name
                             }\` ${this.buildCreateColumnSql(
                                 generatedColumn,
                                 true,
@@ -1512,8 +1532,7 @@ export class PlanetScaleQueryRunner
                     )
                     downQueries.push(
                         new Query(
-                            `ALTER TABLE ${this.escapePath(table)} CHANGE \`${
-                                generatedColumn.name
+                            `ALTER TABLE ${this.escapePath(table)} CHANGE \`${generatedColumn.name
                             }\` ${this.buildCreateColumnSql(
                                 nonGeneratedColumn,
                                 true,
@@ -1543,8 +1562,7 @@ export class PlanetScaleQueryRunner
                         new Query(
                             `ALTER TABLE ${this.escapePath(
                                 table,
-                            )} ADD UNIQUE INDEX \`${uniqueIndex.name}\` (\`${
-                                newColumn.name
+                            )} ADD UNIQUE INDEX \`${uniqueIndex.name}\` (\`${newColumn.name
                             }\`)`,
                         ),
                     )
@@ -1589,8 +1607,7 @@ export class PlanetScaleQueryRunner
                         new Query(
                             `ALTER TABLE ${this.escapePath(
                                 table,
-                            )} ADD UNIQUE INDEX \`${uniqueIndex!.name}\` (\`${
-                                newColumn.name
+                            )} ADD UNIQUE INDEX \`${uniqueIndex!.name}\` (\`${newColumn.name
                             }\`)`,
                         ),
                     )
@@ -1651,8 +1668,7 @@ export class PlanetScaleQueryRunner
 
                 upQueries.push(
                     new Query(
-                        `ALTER TABLE ${this.escapePath(table)} CHANGE \`${
-                            generatedColumn.name
+                        `ALTER TABLE ${this.escapePath(table)} CHANGE \`${generatedColumn.name
                         }\` ${this.buildCreateColumnSql(
                             nonGeneratedColumn,
                             true,
@@ -1661,8 +1677,7 @@ export class PlanetScaleQueryRunner
                 )
                 downQueries.push(
                     new Query(
-                        `ALTER TABLE ${this.escapePath(table)} CHANGE \`${
-                            nonGeneratedColumn.name
+                        `ALTER TABLE ${this.escapePath(table)} CHANGE \`${nonGeneratedColumn.name
                         }\` ${this.buildCreateColumnSql(
                             generatedColumn,
                             true,
@@ -1723,8 +1738,7 @@ export class PlanetScaleQueryRunner
 
                 upQueries.push(
                     new Query(
-                        `ALTER TABLE ${this.escapePath(table)} CHANGE \`${
-                            nonGeneratedColumn.name
+                        `ALTER TABLE ${this.escapePath(table)} CHANGE \`${nonGeneratedColumn.name
                         }\` ${this.buildCreateColumnSql(
                             generatedColumn,
                             true,
@@ -1733,8 +1747,7 @@ export class PlanetScaleQueryRunner
                 )
                 downQueries.push(
                     new Query(
-                        `ALTER TABLE ${this.escapePath(table)} CHANGE \`${
-                            generatedColumn.name
+                        `ALTER TABLE ${this.escapePath(table)} CHANGE \`${generatedColumn.name
                         }\` ${this.buildCreateColumnSql(
                             nonGeneratedColumn,
                             true,
@@ -1802,8 +1815,7 @@ export class PlanetScaleQueryRunner
 
         upQueries.push(
             new Query(
-                `ALTER TABLE ${this.escapePath(table)} DROP COLUMN \`${
-                    column.name
+                `ALTER TABLE ${this.escapePath(table)} DROP COLUMN \`${column.name
                 }\``,
             ),
         )
@@ -1903,15 +1915,13 @@ export class PlanetScaleQueryRunner
 
             upQueries.push(
                 new Query(
-                    `ALTER TABLE ${this.escapePath(table)} CHANGE \`${
-                        generatedColumn.name
+                    `ALTER TABLE ${this.escapePath(table)} CHANGE \`${generatedColumn.name
                     }\` ${this.buildCreateColumnSql(nonGeneratedColumn, true)}`,
                 ),
             )
             downQueries.push(
                 new Query(
-                    `ALTER TABLE ${this.escapePath(table)} CHANGE \`${
-                        nonGeneratedColumn.name
+                    `ALTER TABLE ${this.escapePath(table)} CHANGE \`${nonGeneratedColumn.name
                     }\` ${this.buildCreateColumnSql(generatedColumn, true)}`,
                 ),
             )
@@ -1960,10 +1970,10 @@ export class PlanetScaleQueryRunner
         const newOrExistGeneratedColumn = generatedColumn
             ? generatedColumn
             : columns.find(
-                  (column) =>
-                      column.isGenerated &&
-                      column.generationStrategy === "increment",
-              )
+                (column) =>
+                    column.isGenerated &&
+                    column.generationStrategy === "increment",
+            )
         if (newOrExistGeneratedColumn) {
             const nonGeneratedColumn = newOrExistGeneratedColumn.clone()
             nonGeneratedColumn.isGenerated = false
@@ -1971,8 +1981,7 @@ export class PlanetScaleQueryRunner
 
             upQueries.push(
                 new Query(
-                    `ALTER TABLE ${this.escapePath(table)} CHANGE \`${
-                        nonGeneratedColumn.name
+                    `ALTER TABLE ${this.escapePath(table)} CHANGE \`${nonGeneratedColumn.name
                     }\` ${this.buildCreateColumnSql(
                         newOrExistGeneratedColumn,
                         true,
@@ -1981,8 +1990,7 @@ export class PlanetScaleQueryRunner
             )
             downQueries.push(
                 new Query(
-                    `ALTER TABLE ${this.escapePath(table)} CHANGE \`${
-                        newOrExistGeneratedColumn.name
+                    `ALTER TABLE ${this.escapePath(table)} CHANGE \`${newOrExistGeneratedColumn.name
                     }\` ${this.buildCreateColumnSql(nonGeneratedColumn, true)}`,
                 ),
             )
@@ -2420,8 +2428,7 @@ export class PlanetScaleQueryRunner
             `SELECT \`t\`.*, \`v\`.\`check_option\` FROM ${this.escapePath(
                 this.getTypeormMetadataTableName(),
             )} \`t\` ` +
-            `INNER JOIN \`information_schema\`.\`views\` \`v\` ON \`v\`.\`table_schema\` = \`t\`.\`schema\` AND \`v\`.\`table_name\` = \`t\`.\`name\` WHERE \`t\`.\`type\` = '${
-                MetadataTableType.VIEW
+            `INNER JOIN \`information_schema\`.\`views\` \`v\` ON \`v\`.\`table_schema\` = \`t\`.\`schema\` AND \`v\`.\`table_name\` = \`t\`.\`name\` WHERE \`t\`.\`type\` = '${MetadataTableType.VIEW
             }' ${viewsCondition ? `AND (${viewsCondition})` : ""}`
         const dbViews = await this.query(query)
         return dbViews.map((dbView: any) => {
@@ -2500,8 +2507,8 @@ export class PlanetScaleQueryRunner
                 FROM \`INFORMATION_SCHEMA\`.\`TABLES\`
                 WHERE \`TABLE_SCHEMA\` = '${currentDatabase}'
                   AND \`TABLE_NAME\` IN (${parsedTableNames
-                      .map((table) => `'${table}'`)
-                      .join(",")})
+                    .map((table) => `'${table}'`)
+                    .join(",")})
             `
 
             dbTables.push(...(await this.query(tablesSql)))
@@ -2713,22 +2720,22 @@ export class PlanetScaleQueryRunner
                         .filter(
                             (dbColumn) =>
                                 dbColumn["TABLE_NAME"] ===
-                                    dbTable["TABLE_NAME"] &&
+                                dbTable["TABLE_NAME"] &&
                                 dbColumn["TABLE_SCHEMA"] ===
-                                    dbTable["TABLE_SCHEMA"],
+                                dbTable["TABLE_SCHEMA"],
                         )
                         .map(async (dbColumn) => {
                             const columnUniqueIndices = dbIndices.filter(
                                 (dbIndex) => {
                                     return (
                                         dbIndex["TABLE_NAME"] ===
-                                            dbTable["TABLE_NAME"] &&
+                                        dbTable["TABLE_NAME"] &&
                                         dbIndex["TABLE_SCHEMA"] ===
-                                            dbTable["TABLE_SCHEMA"] &&
+                                        dbTable["TABLE_SCHEMA"] &&
                                         dbIndex["COLUMN_NAME"] ===
-                                            dbColumn["COLUMN_NAME"] &&
+                                        dbColumn["COLUMN_NAME"] &&
                                         parseInt(dbIndex["NON_UNIQUE"], 10) ===
-                                            0
+                                        0
                                     )
                                 },
                             )
@@ -2747,7 +2754,7 @@ export class PlanetScaleQueryRunner
                                         (uniqueIndex) => {
                                             return (
                                                 index.name ===
-                                                    uniqueIndex["INDEX_NAME"] &&
+                                                uniqueIndex["INDEX_NAME"] &&
                                                 index.synchronize === false
                                             )
                                         },
@@ -2759,9 +2766,9 @@ export class PlanetScaleQueryRunner
                                     return dbIndices.some(
                                         (dbIndex) =>
                                             dbIndex["INDEX_NAME"] ===
-                                                uniqueIndex["INDEX_NAME"] &&
+                                            uniqueIndex["INDEX_NAME"] &&
                                             dbIndex["COLUMN_NAME"] !==
-                                                dbColumn["COLUMN_NAME"],
+                                            dbColumn["COLUMN_NAME"],
                                     )
                                 })
 
@@ -2782,8 +2789,8 @@ export class PlanetScaleQueryRunner
                             tableColumn.unsigned = tableColumn.zerofill
                                 ? true
                                 : dbColumn["COLUMN_TYPE"].indexOf(
-                                      "unsigned",
-                                  ) !== -1
+                                    "unsigned",
+                                ) !== -1
                             if (
                                 this.driver.withWidthColumnTypes.indexOf(
                                     tableColumn.type as ColumnType,
@@ -2795,11 +2802,11 @@ export class PlanetScaleQueryRunner
                                 )
                                 tableColumn.width =
                                     width &&
-                                    !this.isDefaultColumnWidth(
-                                        table,
-                                        tableColumn,
-                                        parseInt(width),
-                                    )
+                                        !this.isDefaultColumnWidth(
+                                            table,
+                                            tableColumn,
+                                            parseInt(width),
+                                        )
                                         ? parseInt(width)
                                         : undefined
                             }
@@ -2840,7 +2847,7 @@ export class PlanetScaleQueryRunner
                                 tableColumn.onUpdate = dbColumn["EXTRA"]
                                     .substring(
                                         dbColumn["EXTRA"].indexOf("on update") +
-                                            10,
+                                        10,
                                     )
                                     .toUpperCase()
                             }
@@ -2887,11 +2894,11 @@ export class PlanetScaleQueryRunner
                                 (dbPrimaryKey) => {
                                     return (
                                         dbPrimaryKey["TABLE_NAME"] ===
-                                            dbColumn["TABLE_NAME"] &&
+                                        dbColumn["TABLE_NAME"] &&
                                         dbPrimaryKey["TABLE_SCHEMA"] ===
-                                            dbColumn["TABLE_SCHEMA"] &&
+                                        dbColumn["TABLE_SCHEMA"] &&
                                         dbPrimaryKey["COLUMN_NAME"] ===
-                                            dbColumn["COLUMN_NAME"]
+                                        dbColumn["COLUMN_NAME"]
                                     )
                                 },
                             )
@@ -2904,19 +2911,19 @@ export class PlanetScaleQueryRunner
                             tableColumn.comment =
                                 typeof dbColumn["COLUMN_COMMENT"] ===
                                     "string" &&
-                                dbColumn["COLUMN_COMMENT"].length === 0
+                                    dbColumn["COLUMN_COMMENT"].length === 0
                                     ? undefined
                                     : dbColumn["COLUMN_COMMENT"]
                             if (dbColumn["CHARACTER_SET_NAME"])
                                 tableColumn.charset =
                                     dbColumn["CHARACTER_SET_NAME"] ===
-                                    defaultCharset
+                                        defaultCharset
                                         ? undefined
                                         : dbColumn["CHARACTER_SET_NAME"]
                             if (dbColumn["COLLATION_NAME"])
                                 tableColumn.collation =
                                     dbColumn["COLLATION_NAME"] ===
-                                    defaultCollation
+                                        defaultCollation
                                         ? undefined
                                         : dbColumn["COLLATION_NAME"]
 
@@ -3078,7 +3085,7 @@ export class PlanetScaleQueryRunner
                     const indices = dbIndices.filter((index) => {
                         return (
                             index["TABLE_SCHEMA"] ===
-                                constraint["TABLE_SCHEMA"] &&
+                            constraint["TABLE_SCHEMA"] &&
                             index["TABLE_NAME"] === constraint["TABLE_NAME"] &&
                             index["INDEX_NAME"] === constraint["INDEX_NAME"]
                         )
@@ -3205,11 +3212,10 @@ export class PlanetScaleQueryRunner
                         .map((columnName) => `\`${columnName}\``)
                         .join(", ")
 
-                    let constraint = `CONSTRAINT \`${
-                        fk.name
-                    }\` FOREIGN KEY (${columnNames}) REFERENCES ${this.escapePath(
-                        this.getTablePath(fk),
-                    )} (${referencedColumnNames})`
+                    let constraint = `CONSTRAINT \`${fk.name
+                        }\` FOREIGN KEY (${columnNames}) REFERENCES ${this.escapePath(
+                            this.getTablePath(fk),
+                        )} (${referencedColumnNames})`
                     if (fk.onDelete) constraint += ` ON DELETE ${fk.onDelete}`
                     if (fk.onUpdate) constraint += ` ON UPDATE ${fk.onUpdate}`
 
@@ -3366,8 +3372,7 @@ export class PlanetScaleQueryRunner
             .map((column) => `\`${column}\``)
             .join(",")
         let sql =
-            `ALTER TABLE ${this.escapePath(table)} ADD CONSTRAINT \`${
-                foreignKey.name
+            `ALTER TABLE ${this.escapePath(table)} ADD CONSTRAINT \`${foreignKey.name
             }\` FOREIGN KEY (${columnNames}) ` +
             `REFERENCES ${this.escapePath(
                 this.getTablePath(foreignKey),
@@ -3447,9 +3452,8 @@ export class PlanetScaleQueryRunner
         if (column.collation) c += ` COLLATE "${column.collation}"`
 
         if (column.asExpression)
-            c += ` AS (${column.asExpression}) ${
-                column.generatedType ? column.generatedType : "VIRTUAL"
-            }`
+            c += ` AS (${column.asExpression}) ${column.generatedType ? column.generatedType : "VIRTUAL"
+                }`
 
         // if you specify ZEROFILL for a numeric column, MySQL automatically adds the UNSIGNED attribute to that column.
         if (column.zerofill) {

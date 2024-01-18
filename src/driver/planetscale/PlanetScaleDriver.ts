@@ -22,6 +22,8 @@ import { View } from "../../schema-builder/view/View"
 import { TableForeignKey } from "../../schema-builder/table/TableForeignKey"
 import { InstanceChecker } from "../../util/InstanceChecker"
 import { UpsertType } from "../types/UpsertType"
+import { QueryRunner } from "../../query-runner/QueryRunner"
+import { SchemaBuilder } from "../../schema-builder/SchemaBuilder"
 
 /**
  * Organizes communication with PlanetScale database via the serverless driver.
@@ -352,14 +354,14 @@ export abstract class PlanetScaleDriver implements Driver {
     /**
      * Creates a schema builder used to build and sync a schema.
      */
-    createSchemaBuilder() {
+    createSchemaBuilder(): SchemaBuilder {
         return new RdbmsSchemaBuilder(this.dataSource)
     }
 
     /**
      * Creates a query runner used to execute database queries.
      */
-    createQueryRunner(mode: ReplicationMode) {
+    createQueryRunner(mode: ReplicationMode): QueryRunner {
         return new PlanetScaleQueryRunner(this, mode)
     }
 
