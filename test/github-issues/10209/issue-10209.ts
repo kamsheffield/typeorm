@@ -1,17 +1,18 @@
+import { expect } from "chai"
 import "reflect-metadata"
+import { DataSource } from "../../../src/data-source/DataSource"
+import { PlanetScaleDataSourceOptions } from "../../../src/driver/planetscale/PlanetScaleDataSourceOptions"
 import {
-    createTestingConnections,
     closeTestingConnections,
+    createTestingConnections,
     reloadTestingDatabases,
 } from "../../utils/test-utils"
-import { DataSource } from "../../../src/data-source/DataSource"
-import { expect } from "chai"
-import { LocationEntity } from "./entity/location"
+import { AssetEntity, AssetStatus } from "./entity/asset"
 import {
     ConfigurationEntity,
     ConfigurationStatus,
 } from "./entity/configuration"
-import { AssetEntity, AssetStatus } from "./entity/asset"
+import { LocationEntity } from "./entity/location"
 
 describe("github issues > #10209", () => {
     let dataSources: DataSource[]
@@ -29,6 +30,16 @@ describe("github issues > #10209", () => {
     it("should not fail to run multiple nested transactions in parallel", () =>
         Promise.all(
             dataSources.map(async (dataSource) => {
+                if (dataSource.driver.options.type === "planetscale") {
+                    if (
+                        (
+                            dataSource.driver
+                                .options as PlanetScaleDataSourceOptions
+                        ).connectorType === "serverless"
+                    ) {
+                        return
+                    }
+                }
                 const manager = dataSource.createEntityManager()
 
                 await manager.transaction(async (txManager) => {

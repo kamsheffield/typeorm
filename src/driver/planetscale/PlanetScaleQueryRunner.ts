@@ -18,6 +18,7 @@ import { TableIndex } from "../../schema-builder/table/TableIndex"
 import { TableUnique } from "../../schema-builder/table/TableUnique"
 import { View } from "../../schema-builder/view/View"
 import { Broadcaster } from "../../subscriber/Broadcaster"
+import { BroadcasterResult } from "../../subscriber/BroadcasterResult"
 import { InstanceChecker } from "../../util/InstanceChecker"
 import { OrmUtils } from "../../util/OrmUtils"
 import { VersionUtils } from "../../util/VersionUtils"
@@ -117,6 +118,7 @@ export class PlanetScaleQueryRunner
             throw err
         }
         if (this.transactionDepth === 0) {
+            this.transactionDepth += 1
             if (isolationLevel) {
                 await this.query(
                     "SET TRANSACTION ISOLATION LEVEL " + isolationLevel,
@@ -124,9 +126,9 @@ export class PlanetScaleQueryRunner
             }
             await this.query("START TRANSACTION")
         } else {
-            await this.query(`SAVEPOINT typeorm_${this.transactionDepth}`)
+            this.transactionDepth += 1
+            await this.query(`SAVEPOINT typeorm_${this.transactionDepth - 1}`)
         }
-        this.transactionDepth += 1
 
         await this.broadcaster.broadcast("AfterTransactionStart")
     }
@@ -141,14 +143,15 @@ export class PlanetScaleQueryRunner
         await this.broadcaster.broadcast("BeforeTransactionCommit")
 
         if (this.transactionDepth > 1) {
+            this.transactionDepth -= 1
             await this.query(
-                `RELEASE SAVEPOINT typeorm_${this.transactionDepth - 1}`,
+                `RELEASE SAVEPOINT typeorm_${this.transactionDepth}`,
             )
         } else {
+            this.transactionDepth -= 1
             await this.query("COMMIT")
             this.isTransactionActive = false
         }
-        this.transactionDepth -= 1
 
         await this.broadcaster.broadcast("AfterTransactionCommit")
     }
@@ -163,14 +166,15 @@ export class PlanetScaleQueryRunner
         await this.broadcaster.broadcast("BeforeTransactionRollback")
 
         if (this.transactionDepth > 1) {
+            this.transactionDepth -= 1
             await this.query(
-                `ROLLBACK TO SAVEPOINT typeorm_${this.transactionDepth - 1}`,
+                `ROLLBACK TO SAVEPOINT typeorm_${this.transactionDepth}`,
             )
         } else {
+            this.transactionDepth -= 1
             await this.query("ROLLBACK")
             this.isTransactionActive = false
         }
-        this.transactionDepth -= 1
 
         await this.broadcaster.broadcast("AfterTransactionRollback")
     }
@@ -216,9 +220,15 @@ export class PlanetScaleQueryRunner
         let databaseConnection: Connection
         let driver = this.driver as PlanetScaleServerlessDriver
         return new Promise(async (ok, fail) => {
+            const broadcasterResult = new BroadcasterResult()
             try {
-                databaseConnection = await driver.obtainConnection()
+                databaseConnection = driver.obtainConnection()
                 this.driver.dataSource.logger.logQuery(query, parameters, this)
+                this.broadcaster.broadcastBeforeQueryEvent(
+                    broadcasterResult,
+                    query,
+                    parameters,
+                )
                 const queryStartTime = +new Date()
 
                 //console.log("=-=-= Starting query: " + query, " with params " + JSON.stringify(parameters));
@@ -255,6 +265,16 @@ export class PlanetScaleQueryRunner
                     result.raw = data
                 }
 
+                this.broadcaster.broadcastAfterQueryEvent(
+                    broadcasterResult,
+                    query,
+                    parameters,
+                    true,
+                    queryExecutionTime,
+                    result.raw,
+                    undefined,
+                )
+
                 try {
                     result.records = Array.from(data.rows)
                 } catch {
@@ -273,11 +293,21 @@ export class PlanetScaleQueryRunner
                     parameters,
                     this,
                 )
+                this.broadcaster.broadcastAfterQueryEvent(
+                    broadcasterResult,
+                    query,
+                    parameters,
+                    false,
+                    undefined,
+                    undefined,
+                    err,
+                )
                 fail(new QueryFailedError(query, parameters, err))
             } finally {
                 if (databaseConnection) {
                     driver.releaseConnection(databaseConnection)
                 }
+                await broadcasterResult.wait()
             }
         })
     }
@@ -293,14 +323,23 @@ export class PlanetScaleQueryRunner
         if (this.isReleased) throw new QueryRunnerAlreadyReleasedError()
 
         return new Promise(async (ok, fail) => {
+            const broadcasterResult = new BroadcasterResult()
+
             try {
                 const databaseConnection = await this.connect()
+
                 this.driver.dataSource.logger.logQuery(query, parameters, this)
+                this.broadcaster.broadcastBeforeQueryEvent(
+                    broadcasterResult,
+                    query,
+                    parameters,
+                )
+
                 const queryStartTime = +new Date()
                 databaseConnection.query(
                     query,
                     parameters,
-                    (err: any, raw: any) => {
+                    async (err: any, raw: any) => {
                         // log slow queries if maxQueryExecution time is set
                         const maxQueryExecutionTime =
                             this.driver.options.maxQueryExecutionTime
@@ -324,10 +363,29 @@ export class PlanetScaleQueryRunner
                                 parameters,
                                 this,
                             )
+                            this.broadcaster.broadcastAfterQueryEvent(
+                                broadcasterResult,
+                                query,
+                                parameters,
+                                false,
+                                undefined,
+                                undefined,
+                                err,
+                            )
                             return fail(
                                 new QueryFailedError(query, parameters, err),
                             )
                         }
+
+                        this.broadcaster.broadcastAfterQueryEvent(
+                            broadcasterResult,
+                            query,
+                            parameters,
+                            true,
+                            queryExecutionTime,
+                            raw,
+                            undefined,
+                        )
 
                         const result = new QueryResult()
 
@@ -352,6 +410,8 @@ export class PlanetScaleQueryRunner
                 )
             } catch (err) {
                 fail(err)
+            } finally {
+                await broadcasterResult.wait()
             }
         })
     }
@@ -2481,7 +2541,11 @@ export class PlanetScaleQueryRunner
         // will cause the query to not hit the optimizations & do full scans.  This is why
         // a number of queries below do `UNION`s of single `WHERE` clauses.
 
-        const dbTables: { TABLE_SCHEMA: string; TABLE_NAME: string }[] = []
+        const dbTables: {
+            TABLE_SCHEMA: string
+            TABLE_NAME: string
+            TABLE_COMMENT: string
+        }[] = []
 
         if (!tableNames) {
             // Since we don't have any of this data we have to do a scan
@@ -3103,6 +3167,8 @@ export class PlanetScaleQueryRunner
                     })
                 })
 
+                table.comment = dbTable["TABLE_COMMENT"]
+
                 return table
             }),
         )
@@ -3234,6 +3300,10 @@ export class PlanetScaleQueryRunner
         }
 
         sql += `) ENGINE=${table.engine || "InnoDB"}`
+
+        if (table.comment) {
+            sql += ` COMMENT="${table.comment}"`
+        }
 
         return new Query(sql)
     }
