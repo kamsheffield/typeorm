@@ -1,29 +1,30 @@
+import { ObjectLiteral } from "../../common/ObjectLiteral"
+import { DataSource } from "../../data-source/DataSource"
+import { TypeORMError } from "../../error"
+import { ColumnMetadata } from "../../metadata/ColumnMetadata"
+import { EntityMetadata } from "../../metadata/EntityMetadata"
+import { QueryRunner } from "../../query-runner/QueryRunner"
+import { RdbmsSchemaBuilder } from "../../schema-builder/RdbmsSchemaBuilder"
+import { SchemaBuilder } from "../../schema-builder/SchemaBuilder"
+import { Table } from "../../schema-builder/table/Table"
+import { TableColumn } from "../../schema-builder/table/TableColumn"
+import { TableForeignKey } from "../../schema-builder/table/TableForeignKey"
+import { View } from "../../schema-builder/view/View"
+import { ApplyValueTransformers } from "../../util/ApplyValueTransformers"
+import { DateUtils } from "../../util/DateUtils"
+import { InstanceChecker } from "../../util/InstanceChecker"
+import { NumberUtils } from "../../util/NumberUtils"
+import { OrmUtils } from "../../util/OrmUtils"
 import { Driver, ReturningType } from "../Driver"
 import { DriverUtils } from "../DriverUtils"
-import { CteCapabilities } from "../types/CteCapabilities"
-import { PlanetScaleQueryRunner } from "./PlanetScaleQueryRunner"
-import { ObjectLiteral } from "../../common/ObjectLiteral"
-import { ColumnMetadata } from "../../metadata/ColumnMetadata"
-import { DateUtils } from "../../util/DateUtils"
-import { DataSource } from "../../data-source/DataSource"
-import { RdbmsSchemaBuilder } from "../../schema-builder/RdbmsSchemaBuilder"
-import { PlanetScaleDataSourceOptions } from "./PlanetScaleDataSourceOptions"
-import { MappedColumnTypes } from "../types/MappedColumnTypes"
 import { ColumnType } from "../types/ColumnTypes"
+import { CteCapabilities } from "../types/CteCapabilities"
 import { DataTypeDefaults } from "../types/DataTypeDefaults"
-import { TableColumn } from "../../schema-builder/table/TableColumn"
-import { EntityMetadata } from "../../metadata/EntityMetadata"
-import { OrmUtils } from "../../util/OrmUtils"
-import { ApplyValueTransformers } from "../../util/ApplyValueTransformers"
+import { MappedColumnTypes } from "../types/MappedColumnTypes"
 import { ReplicationMode } from "../types/ReplicationMode"
-import { TypeORMError } from "../../error"
-import { Table } from "../../schema-builder/table/Table"
-import { View } from "../../schema-builder/view/View"
-import { TableForeignKey } from "../../schema-builder/table/TableForeignKey"
-import { InstanceChecker } from "../../util/InstanceChecker"
 import { UpsertType } from "../types/UpsertType"
-import { QueryRunner } from "../../query-runner/QueryRunner"
-import { SchemaBuilder } from "../../schema-builder/SchemaBuilder"
+import { PlanetScaleDataSourceOptions } from "./PlanetScaleDataSourceOptions"
+import { PlanetScaleQueryRunner } from "./PlanetScaleQueryRunner"
 
 /**
  * Organizes communication with PlanetScale database via the serverless driver.
@@ -176,7 +177,7 @@ export abstract class PlanetScaleDriver implements Driver {
      * Gets list of column data types that support length by a driver.
      */
     withWidthColumnTypes: ColumnType[] = [
-        "bit",
+        //"bit",
         "tinyint",
         "smallint",
         "mediumint",
@@ -189,6 +190,7 @@ export abstract class PlanetScaleDriver implements Driver {
      * Gets list of column data types that support precision by a driver.
      */
     withPrecisionColumnTypes: ColumnType[] = [
+        "bit",
         "decimal",
         "dec",
         "numeric",
@@ -289,7 +291,7 @@ export abstract class PlanetScaleDriver implements Driver {
         time: { precision: 0 },
         datetime: { precision: 0 },
         timestamp: { precision: 0 },
-        bit: { width: 1 },
+        bit: { width: 1, precision: 1 },
         int: { width: 11 },
         integer: { width: 11 },
         tinyint: { width: 4 },
@@ -539,13 +541,14 @@ export abstract class PlanetScaleDriver implements Driver {
      * Prepares given value to a value to be persisted, based on its column type or metadata.
      */
     prepareHydratedValue(value: any, columnMetadata: ColumnMetadata): any {
-        if (value === null || value === undefined)
+        if (value === null || value === undefined) {
             return columnMetadata.transformer
                 ? ApplyValueTransformers.transformFrom(
                       columnMetadata.transformer,
                       value,
                   )
                 : value
+        }
 
         if (
             columnMetadata.type === Boolean ||
@@ -588,13 +591,17 @@ export abstract class PlanetScaleDriver implements Driver {
         } else if (columnMetadata.type === Number) {
             // convert to number if number
             value = !isNaN(+value) ? parseInt(value) : value
+        } else if (columnMetadata.type === "bit") {
+            let bitValue = NumberUtils.numberFromBitString(value)
+            value = bitValue
         }
 
-        if (columnMetadata.transformer)
+        if (columnMetadata.transformer) {
             value = ApplyValueTransformers.transformFrom(
                 columnMetadata.transformer,
                 value,
             )
+        }
 
         return value
     }

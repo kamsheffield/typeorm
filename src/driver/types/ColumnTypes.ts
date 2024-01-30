@@ -31,6 +31,7 @@ export type SpatialColumnType =
  * Column types where precision and scale properties are used.
  */
 export type WithPrecisionColumnType =
+    | "bit" // planetscale
     | "float" // mysql, mssql, oracle, sqlite
     | "double" // mysql, sqlite
     | "dec" // oracle, mssql, mysql
@@ -180,7 +181,7 @@ export type SimpleColumnType =
     | "inet4" // mariadb
     | "inet6" // mariadb
     | "macaddr" // postgres
-    | "bit" // postgres, mssql
+    //| "bit" // postgres, mssql
     | "bit varying" // postgres
     | "varbit" // postgres
     | "tsvector" // postgres
