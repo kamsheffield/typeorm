@@ -23,17 +23,17 @@ describe("github issues > #8522 Single table inheritance returns the same discri
     describe("Unrelated tables", () => {
         before(
             async () =>
-            (connections = await createTestingConnections({
-                entities: [
-                    BaseEntity,
-                    InternalUser,
-                    InternalRole,
-                    Role,
-                    User,
-                ],
-                schemaCreate: true,
-                dropSchema: true,
-            })),
+                (connections = await createTestingConnections({
+                    entities: [
+                        BaseEntity,
+                        InternalUser,
+                        InternalRole,
+                        Role,
+                        User,
+                    ],
+                    schemaCreate: true,
+                    dropSchema: true,
+                })),
         )
         beforeEach(() => reloadTestingDatabases(connections))
 
