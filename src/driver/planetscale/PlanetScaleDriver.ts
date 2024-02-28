@@ -330,15 +330,12 @@ export abstract class PlanetScaleDriver implements Driver {
      * Performs connection to the database.
      */
     async connect(): Promise<void> {
-        const queryRunner = this.createQueryRunner("master")
-        const result = await queryRunner.query(
-            `SELECT VERSION() AS \`version\``,
-        )
-        this.version = result.version
         if (!this.database) {
+            console.warn("No database specified before call to connect()")
+            const queryRunner = this.createQueryRunner("master")
             this.database = await queryRunner.getCurrentDatabase()
+            await queryRunner.release()
         }
-        await queryRunner.release()
     }
 
     /**
