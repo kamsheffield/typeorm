@@ -5,10 +5,8 @@ import { Repository } from "../../src/repository/Repository"
 import { PostDetails } from "../../sample/sample2-one-to-one/entity/PostDetails"
 import { Post } from "../../sample/sample2-one-to-one/entity/Post"
 import { PostCategory } from "../../sample/sample2-one-to-one/entity/PostCategory"
-import { PostAuthor } from "../../sample/sample2-one-to-one/entity/PostAuthor"
 import { PostMetadata } from "../../sample/sample2-one-to-one/entity/PostMetadata"
 import { PostImage } from "../../sample/sample2-one-to-one/entity/PostImage"
-import { PostInformation } from "../../sample/sample2-one-to-one/entity/PostInformation"
 import { setupSingleTestingConnection } from "../utils/test-utils"
 
 describe("one-to-one", function () {
@@ -25,13 +23,7 @@ describe("one-to-one", function () {
     async function setupDataSource() {
         const options = setupSingleTestingConnection("planetscale", {
             entities: [
-                Post,
-                PostDetails,
-                PostCategory,
-                PostMetadata,
-                PostImage,
-                PostInformation,
-                PostAuthor,
+                __dirname + "/../../sample/sample2-one-to-one/entity/*"
             ],
         })
 

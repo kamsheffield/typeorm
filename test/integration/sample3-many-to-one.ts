@@ -5,10 +5,8 @@ import { Repository } from "../../src/repository/Repository"
 import { PostDetails } from "../../sample/sample3-many-to-one/entity/PostDetails"
 import { Post } from "../../sample/sample3-many-to-one/entity/Post"
 import { PostCategory } from "../../sample/sample3-many-to-one/entity/PostCategory"
-import { PostAuthor } from "../../sample/sample3-many-to-one/entity/PostAuthor"
 import { PostMetadata } from "../../sample/sample3-many-to-one/entity/PostMetadata"
 import { PostImage } from "../../sample/sample3-many-to-one/entity/PostImage"
-import { PostInformation } from "../../sample/sample3-many-to-one/entity/PostInformation"
 import { setupSingleTestingConnection } from "../utils/test-utils"
 
 describe("many-to-one", function () {
@@ -25,13 +23,7 @@ describe("many-to-one", function () {
     async function setupDataSource() {
         const options = setupSingleTestingConnection("planetscale", {
             entities: [
-                Post,
-                PostDetails,
-                PostCategory,
-                PostMetadata,
-                PostImage,
-                PostInformation,
-                PostAuthor,
+                __dirname + "/../../sample/sample3-many-to-one/entity/*",
             ],
         })
 
