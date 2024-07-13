@@ -78,7 +78,7 @@ export abstract class PlanetScaleDriver implements Driver {
     /**
      * Represent transaction support by this driver
      */
-    transactionSupport = "nested" as const
+    transactionSupport = "simple" as const
 
     /**
      * Gets list of supported column data types by a driver. We use MySQL column types here.
