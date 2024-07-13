@@ -229,7 +229,7 @@
     }
   },
   "dependencies": {
-    "@planetscale/database": "^1.14.0",
+    "@planetscale/database": "^1.18.0",
     "@sqltools/formatter": "^1.2.5",
     "app-root-path": "^3.1.0",
     "buffer": "^6.0.3",

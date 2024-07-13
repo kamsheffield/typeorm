@@ -8,11 +8,17 @@ export namespace NumberUtils {
     export function numberFromBitString(bit: any): number {
         let value = 0
         // the mysql driver returns these as a buffer
-        // the planetscale serverless driver returns these as a string
+        // the older planetscale serverless driver returns these as a string
+        // newer versions of the planetscale serverless driver return these as a Uint8Array
         if (Buffer.isBuffer(bit)) {
             for (let i = 0; i < bit.length; i++) {
                 // we must interpret the values as unsigned
                 const byte = bit.readUint8(i)
+                value += byte * Math.pow(2, 8 * (bit.length - 1 - i))
+            }
+        } else if (bit instanceof Uint8Array) {
+            for (let i = 0; i < bit.length; i++) {
+                const byte = bit[i]
                 value += byte * Math.pow(2, 8 * (bit.length - 1 - i))
             }
         } else if (typeof bit === "string") {
