@@ -146,7 +146,7 @@ export abstract class PlanetScaleDriver implements Driver {
     /**
      * Returns type of upsert supported by driver if any.
      */
-    supportedUpsertTypes: UpsertType[] = []
+    supportedUpsertTypes: UpsertType[] = ["on-duplicate-key-update"]
 
     /**
      * Gets list of spatial column data types.
